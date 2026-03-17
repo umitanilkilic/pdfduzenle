@@ -43,6 +43,7 @@ export function useToolSections(
     filteredTools.forEach(({ item: [id, tool] }) => {
       const categoryId = tool.categoryId;
       const subcategoryId = tool.subcategoryId;
+      if (subcategoryId === SubcategoryId.DEVELOPER_TOOLS) return;
       if (!grouped[categoryId]) grouped[categoryId] = {} as SubcategoryIdMap;
       if (!grouped[categoryId][subcategoryId]) grouped[categoryId][subcategoryId] = [];
       grouped[categoryId][subcategoryId].push({ id, tool });
@@ -118,6 +119,7 @@ export function useToolSections(
       if (seen.has(toolId)) return;
       seen.add(toolId);
       const sub = tool.subcategoryId;
+      if (sub === SubcategoryId.DEVELOPER_TOOLS) return;
       if (!subMap[sub]) subMap[sub] = [];
       subMap[sub].push({ id: toolId as ToolId, tool });
     });
