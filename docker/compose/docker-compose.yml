@@ -16,7 +16,7 @@ services:
       - ../../stirling/latest/data:/usr/share/tessdata:rw
       - ../../stirling/latest/config:/configs:rw
       - ../../stirling/latest/logs:/logs:rw
-    env_file:
+    environment:
       - DISABLE_ADDITIONAL_FEATURES=true
       - SECURITY_ENABLELOGIN=false
       - SYSTEM_DEFAULTLOCALE=tr-TR
