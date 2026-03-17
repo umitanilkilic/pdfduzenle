@@ -17,7 +17,21 @@ services:
       - ../../stirling/latest/config:/configs:rw
       - ../../stirling/latest/logs:/logs:rw
     env_file:
-      - .env
+      - DISABLE_ADDITIONAL_FEATURES=true
+      - SECURITY_ENABLELOGIN=false
+      - SYSTEM_DEFAULTLOCALE=tr-TR
+      - UI_APPNAME="PDF Düzenle"
+      - UI_HOMEDESCRIPTION="Türkçe PDF düzenleme platformu"
+      - UI_APPNAMENAVBAR="PDF Düzenle"
+      - UI_DEFAULT_HIDE_UNAVAILABLE_TOOLS=true
+      - SYSTEM_MAXFILESIZE=100
+      - METRICS_ENABLED=true
+      - SYSTEM_GOOGLEVISIBILITY=true
+      - SHOW_SURVEY=false
+      - SYSTEM_SHOWSETTINGSWHENNOLOGIN=false
+      - ENDPOINTS_TOREMOVE=ocr-pdf
+      - ENDPOINTS_GROUPSTOREMOVE=Automation
+
     networks:
       - stirling-network
 
