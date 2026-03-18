@@ -31,7 +31,7 @@ services:
       - SYSTEM_SHOWSETTINGSWHENNOLOGIN=false
       - ENDPOINTS_TOREMOVE=ocr-pdf
       - ENDPOINTS_GROUPSTOREMOVE=Automation
-
+      - SYSTEM_ENABLEDESKTOPINSTALLSLIDE=false
     networks:
       - stirling-network
 
