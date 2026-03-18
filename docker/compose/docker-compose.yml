@@ -16,7 +16,7 @@ services:
       - ../../stirling/latest/data:/usr/share/tessdata:rw
       - ../../stirling/latest/config:/configs:rw
       - ../../stirling/latest/logs:/logs:rw
-    env_file:
+    environment:
       - DISABLE_ADDITIONAL_FEATURES=true
       - SECURITY_ENABLELOGIN=false
       - SYSTEM_DEFAULTLOCALE=tr-TR
@@ -31,7 +31,7 @@ services:
       - SYSTEM_SHOWSETTINGSWHENNOLOGIN=false
       - ENDPOINTS_TOREMOVE=ocr-pdf
       - ENDPOINTS_GROUPSTOREMOVE=Automation
-
+      - SYSTEM_ENABLEDESKTOPINSTALLSLIDE=false
     networks:
       - stirling-network
 
