@@ -70,7 +70,7 @@ export default function OnboardingModalSlide({
         )}
         {slideDefinition.hero.type === 'diamond' && <DiamondOutlinedIcon sx={{ fontSize: 64, color: '#000000' }} />}
         {slideDefinition.hero.type === 'logo' && (
-          <img src={`${BASE_PATH}/branding/StirlingPDFLogoNoTextLightHC.svg`} alt="Stirling logo" />
+          <img src={`${BASE_PATH}/branding/logo.svg`} alt="Stirling logo" />
         )}
       </div>
     );
