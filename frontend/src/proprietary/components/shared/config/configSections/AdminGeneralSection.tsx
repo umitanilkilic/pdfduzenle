@@ -425,7 +425,7 @@ export default function AdminGeneralSection() {
                   label: (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.25rem 0' }}>
                       <img
-                        src="modern-logo/StirlingPDFLogoNoTextLight.svg"
+                        src="modern-logo/logo.svg"
                         alt={t('admin.settings.general.logoStyle.modernAlt', 'Modern logo')}
                         style={{ width: '24px', height: '24px' }}
                       />
