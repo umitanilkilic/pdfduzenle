@@ -20,9 +20,9 @@ services:
       - DISABLE_ADDITIONAL_FEATURES=true
       - SECURITY_ENABLELOGIN=false
       - SYSTEM_DEFAULTLOCALE=tr-TR
-      - UI_APPNAME="PDF Düzenle"
-      - UI_HOMEDESCRIPTION="Türkçe PDF düzenleme platformu"
-      - UI_APPNAMENAVBAR="PDF Düzenle"
+      - UI_APPNAME=PDF Düzenle
+      - UI_HOMEDESCRIPTION=Türkçe PDF düzenleme platformu
+      - UI_APPNAMENAVBAR=PDF Düzenle
       - UI_DEFAULT_HIDE_UNAVAILABLE_TOOLS=true
       - SYSTEM_MAXFILESIZE=100
       - METRICS_ENABLED=true
@@ -34,10 +34,13 @@ services:
       - SYSTEM_ENABLEDESKTOPINSTALLSLIDE=false
     networks:
       - stirling-network
+      - webnet
 
 networks:
   stirling-network:
     driver: bridge
+  webnet:
+    external: true
 
 volumes:
   stirling-data:
