@@ -1,5 +1,5 @@
 import type { ToolId } from "../registry";
-import type { ToolImpl } from "./types";
+import type { ToolImpl } from "./shared/types";
 
 // Each tool has its own options type; the registry of loaders erases it at this boundary only.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

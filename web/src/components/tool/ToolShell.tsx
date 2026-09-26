@@ -1,10 +1,15 @@
 "use client";
 
 import { AlertCircle, Loader2 } from "lucide-react";
-import { useCallback, useState } from "react";
-import { errorMessage } from "@/tools/impl/errors";
+import { useCallback, useEffect, useState } from "react";
+import { cn } from "@/lib/cn";
+import { errorMessage } from "@/tools/impl/shared/errors";
 import type { JobStage } from "@/api/gateway";
-import type { ToolImpl, OutputFile } from "@/tools/impl/types";
+import { matchesAccept } from "@/lib/files";
+import type { ToolImpl, OutputFile } from "@/tools/impl/shared/types";
+import { useWorkspace } from "@/workspace/context";
+import { toFile, toNewFiles } from "@/workspace/files";
+import { readHandoffIds } from "@/workspace/handoff";
 import { Dropzone } from "./Dropzone";
 import { FileList } from "./FileList";
 import { ResultPanel } from "./ResultPanel";
@@ -15,10 +20,11 @@ import { Button } from "./ui";
 type Phase =
   | { kind: "edit" }
   | { kind: "working"; stage: JobStage }
-  | { kind: "done"; outputs: OutputFile[] }
+  | { kind: "done"; outputs: OutputFile[]; savedIds: string[] }
   | { kind: "error"; message: string };
 
 interface Props<O> {
+  toolId: string;
   tool: ToolImpl<O>;
   accept: string;
   multiple: boolean;
@@ -26,12 +32,27 @@ interface Props<O> {
   next: NextTool[];
 }
 
-export function ToolShell<O>({ tool, accept, multiple, zipName, next }: Props<O>) {
+export function ToolShell<O>({ toolId, tool, accept, multiple, zipName, next }: Props<O>) {
   const services = useRuntime();
+  const workspace = useWorkspace();
   const { dict } = services;
   const [files, setFilesState] = useState<File[]>([]);
   const [options, setOptionsState] = useState<O>(() => tool.initialOptions(services));
   const [phase, setPhase] = useState<Phase>({ kind: "edit" });
+
+  // Files handed over from another tool (`?files=id1,id2`) are loaded from the device store.
+  useEffect(() => {
+    const ids = readHandoffIds(window.location.search);
+    if (ids.length === 0) return;
+    window.history.replaceState(null, "", window.location.pathname);
+    workspace
+      .get(ids)
+      .then((stored) => {
+        const usable = stored.map(toFile).filter((f) => matchesAccept(f, accept));
+        if (usable.length) setFilesState(multiple ? usable : usable.slice(0, 1));
+      })
+      .catch((err) => console.warn("Could not load handed-over files", err));
+  }, [workspace, accept, multiple]);
 
   function setFiles(next: File[]) {
     // Single-file tools keep per-document options (page selections), so start fresh for a new document.
@@ -56,7 +77,12 @@ export function ToolShell<O>({ tool, accept, multiple, zipName, next }: Props<O>
     try {
       const report = (stage: JobStage) => setPhase({ kind: "working", stage });
       const outputs = await tool.run({ files, options, report }, services);
-      setPhase({ kind: "done", outputs });
+      // Keeping results is a convenience; a full or blocked storage must not fail the job.
+      const saved = await workspace.add(toNewFiles(outputs, toolId)).catch((err) => {
+        console.warn("Could not keep results on this device", err);
+        return [];
+      });
+      setPhase({ kind: "done", outputs, savedIds: saved.map((f) => f.id) });
     } catch (err) {
       if (process.env.NODE_ENV !== "production") console.error(err);
       setPhase({ kind: "error", message: errorMessage(err, dict) });
@@ -70,7 +96,9 @@ export function ToolShell<O>({ tool, accept, multiple, zipName, next }: Props<O>
   }
 
   if (phase.kind === "done") {
-    return <ResultPanel outputs={phase.outputs} zipName={zipName} next={next} onReset={reset} />;
+    return (
+      <ResultPanel outputs={phase.outputs} savedIds={phase.savedIds} zipName={zipName} next={next} onReset={reset} />
+    );
   }
 
   if (files.length === 0) {
@@ -82,7 +110,8 @@ export function ToolShell<O>({ tool, accept, multiple, zipName, next }: Props<O>
   const working = phase.kind === "working";
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_20rem]">
+    // Mobile: bottom padding leaves room for the fixed start button.
+    <div className="grid gap-6 pb-24 lg:grid-cols-[1fr_20rem] lg:pb-0">
       <div className="border-border bg-surface-2/50 min-w-0 rounded-3xl border p-4 sm:p-6">
         {Main ? <Main {...view} /> : <FileList files={files} onChange={setFiles} sortable={multiple} />}
         {multiple && (
@@ -92,7 +121,13 @@ export function ToolShell<O>({ tool, accept, multiple, zipName, next }: Props<O>
         )}
       </div>
 
-      <aside className="border-border bg-surface flex flex-col gap-6 rounded-3xl border p-5 lg:sticky lg:top-20 lg:self-start">
+      <aside
+        className={cn(
+          "border-border bg-surface flex flex-col gap-6 rounded-3xl border p-5 lg:sticky lg:top-20 lg:self-start",
+          // With a custom main view (page preview) the options come first on phones, e.g. create a signature, then place it.
+          Main && Options && "max-lg:order-first",
+        )}
+      >
         {Options && (
           <div className="space-y-5">
             <h2 className="text-lg font-bold">{dict.ui.options}</h2>
@@ -105,7 +140,12 @@ export function ToolShell<O>({ tool, accept, multiple, zipName, next }: Props<O>
             {phase.message}
           </p>
         )}
-        <Button className="h-13 w-full text-base" onClick={start} disabled={working} data-testid="start">
+        <Button
+          className="h-13 w-full text-base max-lg:fixed max-lg:inset-x-4 max-lg:bottom-4 max-lg:z-30 max-lg:w-auto max-lg:shadow-xl"
+          onClick={start}
+          disabled={working}
+          data-testid="start"
+        >
           {working ? <Loader2 className="size-5 animate-spin" aria-hidden /> : null}
           {phase.kind === "working" ? dict.process[phase.stage] : dict.process.start}
         </Button>

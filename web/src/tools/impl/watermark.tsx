@@ -5,9 +5,9 @@ import { Choice, Field, Slider, TextInput } from "@/components/tool/ui";
 import { readBytes } from "@/lib/files";
 import { PdfToolError } from "@/pdf/errors";
 import type { WatermarkOptions as EngineOptions } from "@/pdf/ops/stamp";
-import { toEmbeddableImage } from "./images";
-import { pdfOutput } from "./output";
-import type { ToolImpl, ToolViewProps } from "./types";
+import { toEmbeddableImage } from "./shared/images";
+import { pdfOutput } from "./shared/output";
+import type { ToolImpl, ToolViewProps } from "./shared/types";
 
 export interface WatermarkOptions {
   kind: "text" | "image";

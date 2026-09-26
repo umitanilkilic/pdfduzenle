@@ -2,8 +2,8 @@
 
 import { useRuntime } from "@/components/tool/runtime";
 import { Choice } from "@/components/tool/ui";
-import { createServerTool } from "./server";
-import type { ToolViewProps } from "./types";
+import { createServerTool } from "./shared/server";
+import type { ToolViewProps } from "./shared/types";
 
 export interface PdfaOptions {
   version: "1" | "2" | "3";

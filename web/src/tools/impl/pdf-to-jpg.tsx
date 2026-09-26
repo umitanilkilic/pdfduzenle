@@ -3,7 +3,7 @@
 import { useRuntime } from "@/components/tool/runtime";
 import { Choice } from "@/components/tool/ui";
 import { outputName, readBytes } from "@/lib/files";
-import type { ToolImpl, OutputFile, ToolViewProps } from "./types";
+import type { ToolImpl, OutputFile, ToolViewProps } from "./shared/types";
 
 export interface PdfToImageOptions {
   format: "image/jpeg" | "image/png";

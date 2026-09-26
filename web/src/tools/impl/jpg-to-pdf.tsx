@@ -3,9 +3,9 @@
 import { useRuntime } from "@/components/tool/runtime";
 import { Choice } from "@/components/tool/ui";
 import type { ImagesToPdfOptions } from "@/pdf/ops/images";
-import { toEmbeddableImage } from "./images";
-import { pdfOutput } from "./output";
-import type { ToolImpl, ToolViewProps } from "./types";
+import { toEmbeddableImage } from "./shared/images";
+import { pdfOutput } from "./shared/output";
+import type { ToolImpl, ToolViewProps } from "./shared/types";
 
 function Options({ options, setOptions }: ToolViewProps<ImagesToPdfOptions>) {
   const { dict } = useRuntime();

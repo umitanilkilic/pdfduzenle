@@ -1,7 +1,7 @@
 import type { ComponentType } from "react";
 import { runJob } from "@/api/gateway";
 import { outputName } from "@/lib/files";
-import type { ToolId } from "../registry";
+import type { ToolId } from "../../registry";
 import type { ErrorKey, OutputFile, ToolImpl, ToolServices, ToolViewProps } from "./types";
 
 interface ServerToolConfig<O> {

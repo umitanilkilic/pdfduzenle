@@ -108,6 +108,10 @@ export const en: Dictionary = {
     title: "Recent files",
     empty: "Nothing here yet. Processed files are kept on this device only, for 24 hours.",
     clear: "Clear history",
+    download: "Download",
+    remove: "Delete",
+    useIn: "Use in another tool",
+    note: "Kept on this device for 24 hours. Never sent to a server.",
     use: "Use in another tool",
   },
   footer: {

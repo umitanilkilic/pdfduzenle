@@ -5,8 +5,8 @@ import { useRuntime } from "@/components/tool/runtime";
 import { TextInput } from "@/components/tool/ui";
 import { readBytes } from "@/lib/files";
 import type { PdfMetadata } from "@/pdf/ops/metadata";
-import { pdfOutput } from "./output";
-import type { ToolImpl, ToolViewProps } from "./types";
+import { pdfOutput } from "./shared/output";
+import type { ToolImpl, ToolViewProps } from "./shared/types";
 
 export type MetadataOptions = PdfMetadata & { loaded: boolean };
 

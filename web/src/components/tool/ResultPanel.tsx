@@ -6,18 +6,22 @@ import { ToolIcon } from "@/components/ToolIcon";
 import { downloadBytes, zipOutputs } from "@/lib/download";
 import { format } from "@/i18n";
 import { formatBytes, savedPercent } from "@/lib/files";
-import type { OutputFile } from "@/tools/impl/types";
+import type { OutputFile } from "@/tools/impl/shared/types";
+import { handoffHref } from "@/workspace/handoff";
 import type { NextTool } from "./types";
 import { useRuntime } from "./runtime";
 import { Button } from "./ui";
 
 export function ResultPanel({
   outputs,
+  savedIds,
   zipName,
   next,
   onReset,
 }: {
   outputs: OutputFile[];
+  /** Ids of the outputs kept on this device, handed to the next tool. */
+  savedIds: string[];
   zipName: string;
   next: NextTool[];
   onReset(): void;
@@ -28,7 +32,7 @@ export function ResultPanel({
   const saved = single && first.originalSize ? savedPercent(first.originalSize, first.bytes.byteLength) : null;
 
   return (
-    <div className="border-border bg-surface rounded-3xl border p-6 sm:p-10">
+    <div className="border-border bg-surface rounded-3xl border p-6 sm:p-10" data-testid="result">
       <div className="text-center">
         <CheckCircle2 className="text-ok mx-auto size-12" aria-hidden />
         <h2 className="mt-3 text-2xl font-bold">{dict.process.done}</h2>
@@ -85,7 +89,7 @@ export function ResultPanel({
             {next.map((tool) => (
               <li key={tool.href}>
                 <Link
-                  href={tool.href}
+                  href={handoffHref(tool.href, savedIds)}
                   className="border-border hover:bg-surface-2 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition"
                 >
                   <ToolIcon name={tool.icon} className="size-4" style={{ color: `var(--cat-${tool.category})` }} />

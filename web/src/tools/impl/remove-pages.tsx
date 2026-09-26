@@ -1,3 +1,3 @@
-import { createPageSelectionTool } from "./page-selection";
+import { createPageSelectionTool } from "./shared/page-selection";
 
 export default createPageSelectionTool("remove");

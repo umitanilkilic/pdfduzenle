@@ -88,14 +88,59 @@ These apply to every change in every service. A change is not done until they ho
   `worker.ts`/`client.ts`); tests use `createInlineEngine()`. Inject it via `ToolRuntimeProvider`.
 - `src/pdf/render.ts` – pdf.js for previews and PDF → image. Use the **legacy** build: the modern build
   needs very new JS APIs (e.g. `Map#getOrInsertComputed`) and breaks in many browsers.
-- A tool is a `ToolImpl<Options>` (`src/tools/impl/types.ts`): `initialOptions`, optional `Main`/`Options`
+- A tool is a `ToolImpl<Options>` (`src/tools/impl/shared/types.ts`): `initialOptions`, optional `Main`/`Options`
   views, optional `validate()` and a `run()` that receives its services (engine, gateway, font, dict).
   `ToolShell` owns file selection, progress, errors and results. Register tools in `src/tools/impl/index.ts`
   (code-split loaders).
-- Server tools use `createServerTool()` (`src/tools/impl/server.tsx`): upload → poll → download → delete via
+- Server tools use `createServerTool()` (`src/tools/impl/shared/server.tsx`): upload → poll → download → delete via
   the `GatewayClient` (`src/api/gateway.ts`). Gateway error codes map to `dict.errors.*` like `PdfToolError`.
 - `next.config.ts` raises `proxyClientMaxBodySize` so uploads through the `/api` rewrite are not cut at 10 MB.
 - Text drawn into PDFs uses the embedded Inter font (`public/fonts`) so Turkish characters work.
+- `src/tools/impl/` holds one file per tool (named by tool id); helpers shared by several tools live in
+  `src/tools/impl/shared/`. Keep that split when adding tools.
+
+### Workspace: recent files and tool chaining (`web/src/workspace`)
+
+- Every tool result is kept in IndexedDB on the visitor's device for 24 hours (`store.ts`, never uploaded).
+  `WorkspaceProvider` (in the root layout) injects the store; tests use `createMemoryStore()` or
+  `fake-indexeddb`.
+- "Continue with another tool" and the recent-files drawer link to `/<tool>?files=<id,id>`
+  (`handoff.ts`); `ToolShell` loads those files, drops types the tool can't accept and removes the query.
+
+## Checklist and pitfalls (read before finishing any change)
+
+**Before finishing a phase / large change**
+- Review the project structure: new files sit in the right layer and folder (e.g. tool helpers in
+  `tools/impl/shared`, pure logic in `lib`/`pdf`/`workspace`, no logic in route files), names are
+  consistent, no dead code or leftover debug files, `git status` shows nothing unexpected and no new file is
+  swallowed by the (legacy) root `.gitignore`.
+- Update this file when structure, commands or conventions change.
+- Run everything, not only unit tests: `npm run build` then the full Playwright suite (it starts the gateway
+  and OCR service); `go test -race ./...`; `uv run pytest`.
+- UI changes: check screenshots on desktop and a 390 px phone, light and dark.
+- No hard-coded user-facing strings; Turkish copy first, English typed against it.
+
+**Lessons learned (each caused a real bug here)**
+- pdf.js: use the legacy build (`pdfjs-dist/legacy/...`); the modern one crashes on browsers without
+  `Map#getOrInsertComputed`.
+- Next.js cuts request bodies going through the `/api` rewrite at 10 MB unless `proxyClientMaxBodySize`
+  is raised. Keep it in sync with `GATEWAY_MAX_UPLOAD_MB`.
+- Locale routing via `proxy`/rewrites broke client prefetches (404s); use route groups instead.
+- An element with `backdrop-filter` (the sticky header) becomes the containing block for `position: fixed`
+  children: render overlays/drawers with `createPortal(…, document.body)`.
+- `next/font` adds a local "… Fallback" face; `document.fonts.load()` rejects on it, so load only the first
+  family name.
+- Rate limiting: take the client IP as the N-th `X-Forwarded-For` entry from the right
+  (`GATEWAY_TRUSTED_PROXY_HOPS`); the left-most entry is client-controlled.
+- LibreOffice needs the `-nogui` Writer/Calc/Impress/Draw packages, and `soffice` exits 0 even when it fails:
+  always check that the output file exists.
+- Never put passwords in process arguments (visible in `ps`); use 0600 files in the job directory.
+- React 19 lint rules: no synchronous `setState` in effects, no impure calls (`Date.now()`) during render,
+  no ref reads during render.
+- Playwright: links such as tool names appear in several places (menu, footer, related tools); scope
+  locators to a container (`getByTestId("result")`) instead of the whole page.
+- Unlimited-OCR's output format (`<|det|>` blocks, 0–999 coordinates) is an assumption from the README;
+  verify `services/ocr/app/unlimited/parse.py` against the real endpoint before relying on it.
 
 ## services/gateway conventions
 

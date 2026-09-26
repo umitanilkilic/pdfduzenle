@@ -6,7 +6,7 @@ import type { Dictionary } from "@/i18n";
 import type { Locale } from "@/i18n/config";
 import { createWorkerEngine } from "@/pdf/client";
 import type { PdfEngine } from "@/pdf/engine";
-import type { ToolServices } from "@/tools/impl/types";
+import type { ToolServices } from "@/tools/impl/shared/types";
 
 const RuntimeContext = createContext<ToolServices | null>(null);
 

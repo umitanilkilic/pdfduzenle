@@ -1,6 +1,6 @@
 import { readBytes } from "@/lib/files";
-import { pdfOutput } from "./output";
-import type { ToolImpl } from "./types";
+import { pdfOutput } from "./shared/output";
+import type { ToolImpl } from "./shared/types";
 
 const merge: ToolImpl<Record<string, never>> = {
   initialOptions: () => ({}),

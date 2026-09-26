@@ -5,8 +5,8 @@ import { Choice, NumberInput, TextInput } from "@/components/tool/ui";
 import { readBytes } from "@/lib/files";
 import { parsePageGroups } from "@/pdf/pageRanges";
 import { chunkGroups, everyPageGroups } from "@/pdf/ops/pages";
-import { pdfOutput } from "./output";
-import type { ToolImpl, ToolViewProps } from "./types";
+import { pdfOutput } from "./shared/output";
+import type { ToolImpl, ToolViewProps } from "./shared/types";
 
 export interface SplitOptions {
   mode: "ranges" | "every" | "chunk";

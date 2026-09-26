@@ -6,6 +6,7 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { htmlLang, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
+import { WorkspaceProvider } from "@/workspace/context";
 import "../app/globals.css";
 
 const inter = Inter({ subsets: ["latin", "latin-ext"], variable: "--font-inter", display: "swap" });
@@ -41,11 +42,13 @@ export function RootLayout({ locale, children }: { locale: Locale; children: Rea
         >
           {dict.nav.skipToContent}
         </a>
-        <SiteHeader locale={locale} />
-        <main id="main" className="flex-1">
-          {children}
-        </main>
-        <SiteFooter locale={locale} />
+        <WorkspaceProvider>
+          <SiteHeader locale={locale} />
+          <main id="main" className="flex-1">
+            {children}
+          </main>
+          <SiteFooter locale={locale} />
+        </WorkspaceProvider>
       </body>
     </html>
   );

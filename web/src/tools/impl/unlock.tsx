@@ -2,8 +2,8 @@
 
 import { useRuntime } from "@/components/tool/runtime";
 import { TextInput } from "@/components/tool/ui";
-import { createServerTool } from "./server";
-import type { ToolViewProps } from "./types";
+import { createServerTool } from "./shared/server";
+import type { ToolViewProps } from "./shared/types";
 
 export interface UnlockOptions {
   password: string;

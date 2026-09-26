@@ -106,6 +106,10 @@ export const tr = {
     title: "Son işlemler",
     empty: "Henüz işlem yok. İşlediğiniz dosyalar 24 saat boyunca yalnızca bu cihazda saklanır.",
     clear: "Geçmişi temizle",
+    download: "İndir",
+    remove: "Sil",
+    useIn: "Başka araçta kullan",
+    note: "Bu cihazda, 24 saat saklanır. Hiçbir sunucuya gönderilmez.",
     use: "Başka araçta kullan",
   },
   footer: {

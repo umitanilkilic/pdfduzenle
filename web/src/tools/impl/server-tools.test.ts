@@ -6,8 +6,8 @@ import compress from "./compress";
 import pdfToWord from "./pdf-to-word";
 import ocr from "./ocr";
 import protect, { validateProtect } from "./protect";
-import { extensionFor } from "./server";
-import type { ToolImpl, ToolServices } from "./types";
+import { extensionFor } from "./shared/server";
+import type { ToolImpl, ToolServices } from "./shared/types";
 
 const DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 

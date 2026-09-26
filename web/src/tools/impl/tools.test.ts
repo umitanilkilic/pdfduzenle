@@ -12,7 +12,7 @@ import pageNumbers from "./page-numbers";
 import removePages from "./remove-pages";
 import rotate from "./rotate";
 import split from "./split";
-import type { ToolImpl, ToolServices } from "./types";
+import type { ToolImpl, ToolServices } from "./shared/types";
 
 const services: ToolServices = {
   engine: createInlineEngine(),

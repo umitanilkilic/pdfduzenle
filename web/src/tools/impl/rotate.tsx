@@ -4,8 +4,8 @@ import { useRuntime } from "@/components/tool/runtime";
 import { Choice } from "@/components/tool/ui";
 import { readBytes } from "@/lib/files";
 import type { Rotation } from "@/pdf/geometry";
-import { pdfOutput } from "./output";
-import type { ToolImpl, ToolViewProps } from "./types";
+import { pdfOutput } from "./shared/output";
+import type { ToolImpl, ToolViewProps } from "./shared/types";
 
 export interface RotateOptions {
   angle: Rotation;

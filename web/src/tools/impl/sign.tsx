@@ -12,10 +12,10 @@ import { Checkbox, Choice, Field, IconButton, TextInput } from "@/components/too
 import { format } from "@/i18n";
 import { readBytes } from "@/lib/files";
 import { PdfToolError } from "@/pdf/errors";
-import { toEmbeddableImage } from "./images";
-import { pdfOutput } from "./output";
+import { toEmbeddableImage } from "./shared/images";
+import { pdfOutput } from "./shared/output";
 import { boxHeight, clampBox, placements, type SignatureBox } from "./sign-placement";
-import type { ToolImpl, ToolViewProps } from "./types";
+import type { ToolImpl, ToolViewProps } from "./shared/types";
 
 const script = Caveat({ subsets: ["latin", "latin-ext"], weight: "600" });
 // Only the real face: the generated "Caveat Fallback" face is local() and makes fonts.load() reject.

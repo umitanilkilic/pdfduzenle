@@ -4,8 +4,8 @@ import { useRuntime } from "@/components/tool/runtime";
 import { Checkbox, Choice, NumberInput } from "@/components/tool/ui";
 import { readBytes } from "@/lib/files";
 import type { HorizontalPosition, VerticalPosition } from "@/pdf/ops/stamp";
-import { pdfOutput } from "./output";
-import type { ToolImpl, ToolViewProps } from "./types";
+import { pdfOutput } from "./shared/output";
+import type { ToolImpl, ToolViewProps } from "./shared/types";
 
 export interface PageNumbersOptions {
   vertical: VerticalPosition;

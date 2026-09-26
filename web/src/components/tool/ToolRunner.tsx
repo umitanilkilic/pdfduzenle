@@ -33,5 +33,5 @@ export function ToolRunner({ toolId, ...rest }: Props) {
       </div>
     );
   }
-  return <ToolShell tool={tool} {...rest} />;
+  return <ToolShell toolId={toolId} tool={tool} {...rest} />;
 }

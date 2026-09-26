@@ -29,8 +29,8 @@ import { cn } from "@/lib/cn";
 import { readBytes } from "@/lib/files";
 import { normalizeRotation } from "@/pdf/geometry";
 import type { PagePlan } from "@/pdf/ops/pages";
-import { pdfOutput } from "./output";
-import type { ToolImpl, ToolViewProps } from "./types";
+import { pdfOutput } from "./shared/output";
+import type { ToolImpl, ToolViewProps } from "./shared/types";
 
 export interface OrganizeItem extends PagePlan {
   removed: boolean;

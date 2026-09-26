@@ -9,8 +9,8 @@ import { NumberInput } from "@/components/tool/ui";
 import { format } from "@/i18n";
 import { readBytes } from "@/lib/files";
 import { MM_TO_PT, type Margins } from "@/pdf/geometry";
-import { pdfOutput } from "./output";
-import type { ToolImpl, ToolViewProps } from "./types";
+import { pdfOutput } from "./shared/output";
+import type { ToolImpl, ToolViewProps } from "./shared/types";
 
 export type CropOptions = Margins;
 
