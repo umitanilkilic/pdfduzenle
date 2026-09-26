@@ -48,6 +48,7 @@ type Exec struct{}
 
 func (Exec) Run(ctx context.Context, c Command) (Result, error) {
 	cmd := exec.CommandContext(ctx, c.Name, c.Args...)
+	killProcessGroup(cmd)
 	cmd.Dir = c.Dir
 	cmd.Env = append([]string{"PATH=/usr/local/bin:/usr/bin:/bin", "HOME=" + c.Dir, "LANG=C.UTF-8"}, c.Env...)
 	var stdout, stderr bytes.Buffer

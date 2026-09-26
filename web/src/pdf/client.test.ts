@@ -48,6 +48,31 @@ describe("createWorkerEngine", () => {
     await expect(engine.mergePdfs([])).rejects.toBeInstanceOf(PdfToolError);
   });
 
+  it("recovers after the worker crashes", async () => {
+    const workers: FakeWorker[] = [];
+    const engine = createWorkerEngine(() => {
+      const w = new FakeWorker();
+      workers.push(w);
+      return w as unknown as Worker;
+    });
+    await engine.pageCount(await makePdf(1));
+    workers[0].onerror?.({ message: "boom" } as ErrorEvent);
+    expect(workers[0].terminated).toBe(true);
+    expect(await engine.pageCount(await makePdf(2))).toBe(2);
+    expect(workers).toHaveLength(2);
+  });
+
+  it("rejects calls when the worker cannot be created", async () => {
+    let attempts = 0;
+    const engine = createWorkerEngine(() => {
+      attempts++;
+      return attempts === 1 ? Promise.reject(new Error("no workers")) : (new FakeWorker() as unknown as Worker);
+    });
+    await expect(engine.pageCount(new Uint8Array())).rejects.toThrow("no workers");
+    // A later call tries again instead of reusing the failure.
+    expect(await engine.pageCount(await makePdf(1))).toBe(1);
+  });
+
   it("does not create a worker until the first call", () => {
     let created = 0;
     createWorkerEngine(() => {

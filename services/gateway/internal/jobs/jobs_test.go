@@ -127,11 +127,31 @@ func TestPoolLimitsConcurrency(t *testing.T) {
 
 func TestCreateRejectsWhenBusy(t *testing.T) {
 	m := newManager(t, Options{MaxPending: 1})
-	if _, _, err := m.Create("t"); err != nil {
+	block := make(chan struct{})
+	t.Cleanup(func() { close(block) })
+	id, dir, err := m.Create("t")
+	if err != nil {
 		t.Fatal(err)
 	}
+	m.Start(id, spec(toolFunc(func(context.Context, tools.Input) ([]tools.Output, error) {
+		<-block
+		return nil, nil
+	})), tools.Input{Dir: dir})
 	if _, _, err := m.Create("t"); !errors.Is(err, ErrBusy) {
 		t.Fatalf("err = %v, want ErrBusy", err)
+	}
+}
+
+func TestUploadingJobsDoNotBlockTheQueue(t *testing.T) {
+	m := newManager(t, Options{MaxPending: 1})
+	for range 5 {
+		id, _, err := m.Create("t") // e.g. slow clients still sending files
+		if err != nil {
+			t.Fatal(err)
+		}
+		if s, _ := m.Get(id); s.Status != StatusUploading {
+			t.Fatalf("status = %s, want uploading", s.Status)
+		}
 	}
 }
 

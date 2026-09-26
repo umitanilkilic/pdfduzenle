@@ -17,7 +17,8 @@ import { pdfOutput } from "./shared/output";
 import { boxHeight, clampBox, placements, type SignatureBox } from "./sign-placement";
 import type { ToolImpl, ToolViewProps } from "./shared/types";
 
-const script = Caveat({ subsets: ["latin", "latin-ext"], weight: "600" });
+// Not preloaded: only needed once someone types a signature (route prefetches would otherwise fetch it everywhere).
+const script = Caveat({ subsets: ["latin", "latin-ext"], weight: "600", preload: false });
 // Only the real face: the generated "Caveat Fallback" face is local() and makes fonts.load() reject.
 const SCRIPT_FAMILY = script.style.fontFamily.split(",")[0];
 

@@ -3,8 +3,7 @@
 import { useRuntime } from "@/components/tool/runtime";
 import { Choice, NumberInput, TextInput } from "@/components/tool/ui";
 import { readBytes } from "@/lib/files";
-import { parsePageGroups } from "@/pdf/pageRanges";
-import { chunkGroups, everyPageGroups } from "@/pdf/ops/pages";
+import { chunkGroups, everyPageGroups, parsePageGroups } from "@/pdf/pageRanges";
 import { pdfOutput } from "./shared/output";
 import type { ToolImpl, ToolViewProps } from "./shared/types";
 

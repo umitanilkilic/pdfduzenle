@@ -1,25 +1,12 @@
 "use client";
 
-import {
-  DndContext,
-  KeyboardSensor,
-  PointerSensor,
-  closestCenter,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  arrayMove,
-  rectSortingStrategy,
-  sortableKeyboardCoordinates,
-  useSortable,
-} from "@dnd-kit/sortable";
+import { DndContext, closestCenter, type DragEndEvent } from "@dnd-kit/core";
+import { SortableContext, arrayMove, rectSortingStrategy, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { RotateCcw, RotateCw, Trash2, Undo2 } from "lucide-react";
 import { useEffect } from "react";
 import { PageThumb } from "@/components/tool/PageThumb";
+import { useSortSensors } from "@/components/tool/sortable";
 import { PdfPreviewGate } from "@/components/tool/PdfPreviewGate";
 import { useRuntime } from "@/components/tool/runtime";
 import type { PdfPreview } from "@/components/tool/usePdfDocument";
@@ -54,10 +41,7 @@ function Grid({
   pages: OrganizeItem[];
   onChange(pages: OrganizeItem[]): void;
 }) {
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
-  );
+  const sensors = useSortSensors(6);
   const ids = pages.map((p) => `p${p.index}`);
 
   function onDragEnd({ active, over }: DragEndEvent) {

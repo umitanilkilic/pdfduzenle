@@ -77,6 +77,8 @@ def ocrmypdf_runner(
         ocr_engine=engine,
         plugins=[unlimited_plugin.__name__] if engine == unlimited_plugin.ENGINE_NAME else [],
         sidecar=sidecar,
+        # Per-page limit: a pathological page must not hold a worker for the whole job timeout.
+        tesseract_timeout=120 if engine == "tesseract" else None,
         rotate_pages=engine == "tesseract",
         deskew=engine == "tesseract",
         skip_text=True,

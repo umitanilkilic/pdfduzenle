@@ -39,3 +39,18 @@ export function formatPageSelection(indices: number[]): string {
   }
   return parts.join(", ");
 }
+
+/** Groups for "one file per page". */
+export function everyPageGroups(count: number): number[][] {
+  return Array.from({ length: count }, (_, i) => [i]);
+}
+
+/** Groups for "a new file every n pages". */
+export function chunkGroups(count: number, size: number): number[][] {
+  if (!Number.isInteger(size) || size < 1) throw new PdfToolError("invalidRange");
+  const groups: number[][] = [];
+  for (let start = 0; start < count; start += size) {
+    groups.push(Array.from({ length: Math.min(size, count - start) }, (_, i) => start + i));
+  }
+  return groups;
+}

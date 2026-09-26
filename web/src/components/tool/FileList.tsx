@@ -1,25 +1,12 @@
 "use client";
 
-import {
-  DndContext,
-  KeyboardSensor,
-  PointerSensor,
-  closestCenter,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  arrayMove,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
+import { DndContext, closestCenter, type DragEndEvent } from "@dnd-kit/core";
+import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { FileText, GripVertical, ImageIcon, X } from "lucide-react";
 import { useMemo } from "react";
 import { formatBytes } from "@/lib/files";
+import { useSortSensors } from "./sortable";
 import { useRuntime } from "./runtime";
 import { IconButton } from "./ui";
 
@@ -43,10 +30,7 @@ export function FileList({
 }) {
   const { dict } = useRuntime();
   const ids = useMemo(() => files.map(fileKey), [files]);
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
-  );
+  const sensors = useSortSensors(4);
 
   function onDragEnd({ active, over }: DragEndEvent) {
     if (!over || active.id === over.id) return;

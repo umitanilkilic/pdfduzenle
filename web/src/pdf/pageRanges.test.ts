@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { PdfToolError } from "./errors";
-import { formatPageSelection, parsePageGroups, parsePageSelection } from "./pageRanges";
+import { chunkGroups, everyPageGroups, formatPageSelection, parsePageGroups, parsePageSelection } from "./pageRanges";
 
 function codeOf(fn: () => unknown) {
   try {
@@ -52,5 +52,13 @@ describe("formatPageSelection", () => {
   it("round-trips with parsePageSelection", () => {
     const indices = [0, 2, 3, 4, 9];
     expect(parsePageSelection(formatPageSelection(indices), 10)).toEqual(indices);
+  });
+});
+
+describe("split groups", () => {
+  it("builds one group per page or per chunk", () => {
+    expect(everyPageGroups(3)).toEqual([[0], [1], [2]]);
+    expect(chunkGroups(5, 2)).toEqual([[0, 1], [2, 3], [4]]);
+    expect(() => chunkGroups(5, 0)).toThrow(PdfToolError);
   });
 });

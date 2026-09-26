@@ -54,7 +54,7 @@ func ensureOpenable(ctx context.Context, r runner.Runner, dir, path string) erro
 
 func randomHex(n int) string {
 	b := make([]byte, n)
-	_, _ = rand.Read(b)
+	_, _ = rand.Read(b) // never fails since Go 1.24 (it aborts the program instead)
 	return hex.EncodeToString(b)
 }
 

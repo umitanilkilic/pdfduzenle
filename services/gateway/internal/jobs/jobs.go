@@ -19,10 +19,13 @@ import (
 type Status string
 
 const (
-	StatusQueued  Status = "queued"
-	StatusRunning Status = "running"
-	StatusDone    Status = "done"
-	StatusFailed  Status = "failed"
+	// StatusUploading jobs are still receiving files and do not count against MaxPending,
+	// so slow or stalled uploads cannot block the queue.
+	StatusUploading Status = "uploading"
+	StatusQueued    Status = "queued"
+	StatusRunning   Status = "running"
+	StatusDone      Status = "done"
+	StatusFailed    Status = "failed"
 )
 
 // ErrBusy means too many jobs are waiting; the client should retry later.
@@ -94,12 +97,13 @@ func (m *Manager) Create(tool string) (id, dir string, err error) {
 	if err := os.Mkdir(dir, 0o700); err != nil {
 		return "", "", fmt.Errorf("create job dir: %w", err)
 	}
-	m.jobs[id] = &job{Snapshot: Snapshot{ID: id, Tool: tool, Status: StatusQueued, CreatedAt: m.opts.Clock()}, dir: dir}
+	m.jobs[id] = &job{Snapshot: Snapshot{ID: id, Tool: tool, Status: StatusUploading, CreatedAt: m.opts.Clock()}, dir: dir}
 	return id, dir, nil
 }
 
 // Start runs the tool for a created job in the background.
 func (m *Manager) Start(id string, spec tools.Spec, in tools.Input) {
+	m.update(id, func(j *job) { j.Status = StatusQueued })
 	m.wg.Add(1)
 	go func() {
 		defer m.wg.Done()
@@ -243,6 +247,6 @@ func (m *Manager) removeDir(dir string) {
 // newID returns 128 random bits; job IDs double as unguessable access tokens.
 func newID() string {
 	b := make([]byte, 16)
-	_, _ = rand.Read(b)
+	_, _ = rand.Read(b) // never fails since Go 1.24 (it aborts the program instead)
 	return hex.EncodeToString(b)
 }

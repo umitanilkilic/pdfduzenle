@@ -2,10 +2,11 @@
 
 import { Download, FileText, History, Trash2, X } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { Dictionary } from "@/i18n";
 import type { Locale } from "@/i18n/config";
+import { downloadBlob } from "@/lib/download";
 import { formatBytes } from "@/lib/files";
 import { compatibleTools, timeAgo, type ToolLink } from "@/workspace/compatible";
 import { useWorkspace } from "@/workspace/context";
@@ -21,6 +22,8 @@ interface Props {
 export function HistoryButton({ locale, labels, tools }: Props) {
   const store = useWorkspace();
   const [open, setOpen] = useState(false);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const closeButton = useRef<HTMLButtonElement>(null);
   const [files, setFiles] = useState<StoredFile[]>([]);
   const [now, setNow] = useState(0);
 
@@ -41,14 +44,21 @@ export function HistoryButton({ locale, labels, tools }: Props) {
 
   useEffect(() => {
     if (!open) return;
+    // Move focus into the dialog and give it back to the button when it closes.
+    closeButton.current?.focus();
+    const button = trigger.current;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
     document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      button?.focus();
+    };
   }, [open]);
 
   return (
     <>
       <button
+        ref={trigger}
         type="button"
         onClick={() => {
           refresh();
@@ -139,15 +149,6 @@ function HistoryItem({
 }) {
   const [showTools, setShowTools] = useState(false);
 
-  function download() {
-    const url = URL.createObjectURL(file.blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = file.name;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 60_000);
-  }
-
   return (
     <li className="px-5 py-3">
       <div className="flex items-center gap-3">
@@ -160,7 +161,7 @@ function HistoryItem({
         </div>
         <button
           type="button"
-          onClick={download}
+          onClick={() => downloadBlob(file.blob, file.name)}
           aria-label={labels.download}
           title={labels.download}
           className="text-muted hover:bg-surface-2 hover:text-fg grid size-8 place-items-center rounded-full"

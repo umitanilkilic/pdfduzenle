@@ -71,7 +71,9 @@ func run(log *slog.Logger) error {
 		Addr:              cfg.Addr,
 		Handler:           api,
 		ReadHeaderTimeout: 10 * time.Second,
-		IdleTimeout:       2 * time.Minute,
+		// Generous enough for 100 MB on a slow mobile connection; stops clients that trickle bodies forever.
+		ReadTimeout: 30 * time.Minute,
+		IdleTimeout: 2 * time.Minute,
 	}
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)

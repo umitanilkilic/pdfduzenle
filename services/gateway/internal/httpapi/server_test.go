@@ -36,6 +36,13 @@ func (e echoTool) Process(_ context.Context, in tools.Input) ([]tools.Output, er
 	return outs, nil
 }
 
+type blockingTool chan struct{}
+
+func (b blockingTool) Process(context.Context, tools.Input) ([]tools.Output, error) {
+	<-b
+	return nil, nil
+}
+
 type allowAll struct{ allow bool }
 
 func (a allowAll) Allow(string) bool { return a.allow }
@@ -192,7 +199,11 @@ func TestSubmitUnknownToolRateLimitAndBusy(t *testing.T) {
 	}
 
 	f := newFixture(t, allowAll{true}, 1)
-	_, _, _ = f.jobs.Create("echo") // occupy the only slot
+	// Occupy the only slot with a job that is queued behind a busy pool.
+	id, dir, _ := f.jobs.Create("echo")
+	block := make(chan struct{})
+	t.Cleanup(func() { close(block) })
+	f.jobs.Start(id, tools.Spec{ID: "echo", Pool: "p", Timeout: time.Minute, Tool: blockingTool(block)}, tools.Input{Dir: dir})
 	body, ct = multipartBody(t, part{"files", "a.pdf", "%PDF-"})
 	if rec := f.do(t, "POST", "/api/tools/echo", body, ct); rec.Code != 503 {
 		t.Fatalf("busy: %d", rec.Code)

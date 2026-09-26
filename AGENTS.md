@@ -139,6 +139,17 @@ These apply to every change in every service. A change is not done until they ho
   no ref reads during render.
 - Playwright: links such as tool names appear in several places (menu, footer, related tools); scope
   locators to a container (`getByTestId("result")`) instead of the whole page.
+- Main-thread code must not value-import `pdf-lib` or `src/pdf/ops/*` (ESLint enforces it): the bundler then
+  put pdf-lib (~400 KB) into every page's prefetched chunks. Keep the `new Worker(new URL(…))` expression in
+  a lazily imported module (`pdf/worker-factory.ts`) for the same reason.
+- `next/font` preloads a font on every page that prefetches a route using it; fonts needed only inside a tool
+  (e.g. the signature font) use `preload: false`.
+- External tools spawn helpers (soffice → oosplash → soffice.bin). The runner kills the whole process group
+  on timeout; otherwise orphans keep running and hold the output pipe, so the timeout never returns.
+- Jobs count against the queue limit only after their upload finished (`uploading` state), so slow uploads
+  can't block the queue.
+- The CSP (`next.config.ts`) is production-only and allows inline scripts (static pages can't use nonces);
+  `e2e/layout.spec.ts` fails on any CSP violation.
 - Unlimited-OCR's output format (`<|det|>` blocks, 0–999 coordinates) is an assumption from the README;
   verify `services/ocr/app/unlimited/parse.py` against the real endpoint before relying on it.
 

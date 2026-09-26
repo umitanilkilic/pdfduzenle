@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { PdfToolError } from "../errors";
 import { makePdf, pageIds, pageRotations } from "../testing";
 import { mergePdfs } from "./merge";
-import { chunkGroups, everyPageGroups, extractPages, organizePages, removePages, rotatePages, splitPdf } from "./pages";
+import { extractPages, organizePages, removePages, rotatePages, splitPdf } from "./pages";
 
 describe("mergePdfs", () => {
   it("concatenates files in order", async () => {
@@ -65,11 +65,5 @@ describe("page helpers", () => {
   it("splits into groups", async () => {
     const parts = await splitPdf(await makePdf(5), [[0, 1], [4]]);
     expect(await Promise.all(parts.map(pageIds))).toEqual([[0, 1], [4]]);
-  });
-
-  it("builds split groups", () => {
-    expect(everyPageGroups(3)).toEqual([[0], [1], [2]]);
-    expect(chunkGroups(5, 2)).toEqual([[0, 1], [2, 3], [4]]);
-    expect(() => chunkGroups(5, 0)).toThrow(PdfToolError);
   });
 });

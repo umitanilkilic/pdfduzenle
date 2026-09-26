@@ -2,7 +2,11 @@ import { zipSync } from "fflate";
 import type { OutputFile } from "@/tools/impl/shared/types";
 
 export function downloadBytes(bytes: Uint8Array, name: string, type: string) {
-  const url = URL.createObjectURL(new Blob([bytes as BlobPart], { type }));
+  downloadBlob(new Blob([bytes as BlobPart], { type }), name);
+}
+
+export function downloadBlob(blob: Blob, name: string) {
+  const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
   a.download = name;

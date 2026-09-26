@@ -15,6 +15,9 @@ services:
       - "3000:3000"
     networks: [internal, webnet]
     restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    mem_limit: 1g
 
   gateway:
     build: ./services/gateway
@@ -32,6 +35,11 @@ services:
       - /tmp:size=4g
     networks: [internal, webnet]
     restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    # LibreOffice and Ghostscript on hostile documents: cap memory and process count.
+    mem_limit: 4g
+    pids_limit: 512
 
   ocr:
     build: ./services/ocr
@@ -47,6 +55,10 @@ services:
       - /tmp:size=4g
     networks: [internal]
     restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    mem_limit: 4g
+    pids_limit: 512
 
 networks:
   internal:
