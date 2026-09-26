@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { drawOrigins, makePdf, pageContent, pageIds, PNG_1X1, testFont } from "../testing";
-import { addPageNumbers, addWatermark, formatPageLabel, placeImage, type PageNumberOptions } from "./stamp";
+import { addPageNumbers, addWatermark, placeImage, type PageNumberOptions } from "./stamp";
 
 const font = testFont();
 
@@ -14,12 +14,6 @@ const numbers: PageNumberOptions = {
   margin: 20,
   color: "#000000",
 };
-
-describe("formatPageLabel", () => {
-  it("fills placeholders", () => {
-    expect(formatPageLabel("Sayfa {n} / {total}", 3, 9)).toBe("Sayfa 3 / 9");
-  });
-});
 
 describe("addPageNumbers", () => {
   it("numbers every page and keeps the page order", async () => {

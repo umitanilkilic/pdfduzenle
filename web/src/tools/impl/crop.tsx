@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { PageImage } from "@/components/tool/PageImage";
 import { PdfPreviewGate } from "@/components/tool/PdfPreviewGate";
 import { useRuntime } from "@/components/tool/runtime";
+import { usePageSize } from "@/components/tool/usePageSize";
 import type { PdfPreview } from "@/components/tool/usePdfDocument";
 import { NumberInput } from "@/components/tool/ui";
 import { format } from "@/i18n";
@@ -24,17 +24,8 @@ export function sanitizeMargins(m: Margins): Margins {
 
 function CropOverlay({ preview, margins }: { preview: PdfPreview; margins: Margins }) {
   const { dict } = useRuntime();
-  const [sizeMm, setSizeMm] = useState<{ width: number; height: number } | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    preview.doc
-      .pageSize(0)
-      .then((s) => !cancelled && setSizeMm({ width: s.width / MM_TO_PT, height: s.height / MM_TO_PT }));
-    return () => {
-      cancelled = true;
-    };
-  }, [preview]);
+  const size = usePageSize(preview, 0);
+  const sizeMm = size && { width: size.width / MM_TO_PT, height: size.height / MM_TO_PT };
 
   const m = sanitizeMargins(margins);
   const pct = (v: number, total: number) => `${Math.min(100, (v / total) * 100)}%`;

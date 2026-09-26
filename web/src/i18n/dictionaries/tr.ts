@@ -186,6 +186,7 @@ export const tr = {
     },
     "page-numbers": {
       output: "numarali",
+      preview: "Önizleme: {n}. sayfa",
       position: "Konum",
       top: "Üst",
       bottom: "Alt",
@@ -200,6 +201,7 @@ export const tr = {
     },
     watermark: {
       output: "filigranli",
+      preview: "Önizleme: ilk sayfa",
       kind: "Filigran türü",
       kindText: "Metin",
       kindImage: "Görsel",

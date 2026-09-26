@@ -188,6 +188,7 @@ export const en: Dictionary = {
     },
     "page-numbers": {
       output: "numbered",
+      preview: "Preview: page {n}",
       position: "Position",
       top: "Top",
       bottom: "Bottom",
@@ -202,6 +203,7 @@ export const en: Dictionary = {
     },
     watermark: {
       output: "watermarked",
+      preview: "Preview: first page",
       kind: "Watermark type",
       kindText: "Text",
       kindImage: "Image",

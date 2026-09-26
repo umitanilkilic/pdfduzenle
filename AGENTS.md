@@ -91,7 +91,10 @@ These apply to every change in every service. A change is not done until they ho
   needs very new JS APIs (e.g. `Map#getOrInsertComputed`) and breaks in many browsers.
 - A tool is a `ToolImpl<Options>` (`src/tools/impl/shared/types.ts`): `initialOptions`, optional `Main`/`Options`
   views, optional `validate()` and a `run()` that receives its services (engine, gateway, font, dict).
-  `ToolShell` owns file selection, progress, errors and results. Register tools in `src/tools/impl/index.ts`
+  `ToolShell` owns file selection, progress, errors and results. The default `FileList` shows a first-page
+  thumbnail per file (`useFileThumbnail`, a few PDFs at a time); single-file tools with a `Main` preview get a
+  `FileBar` (name, size, remove) above it. Live previews (crop, page numbers, watermark) draw an overlay on
+  `PageImage` in PDF-point percentages (`usePageSize`) and share their option mapping with `run()`. Register tools in `src/tools/impl/index.ts`
   (code-split loaders).
 - Server tools use `createServerTool()` (`src/tools/impl/shared/server.tsx`): upload → poll → download → delete via
   the `GatewayClient` (`src/api/gateway.ts`). Gateway error codes map to `dict.errors.*` like `PdfToolError`.

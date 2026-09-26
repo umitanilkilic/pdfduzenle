@@ -53,14 +53,34 @@ test("organize: rotate and delete pages", async ({ page }) => {
   expect(await pageIdsOf(download)).toEqual([1, 2]);
 });
 
-test("add page numbers and a watermark", async ({ page }) => {
+test("add page numbers and a watermark with a live preview", async ({ page }) => {
   await page.goto("/pdf-sayfa-numarasi-ekle");
   await page.getByTestId("file-input").setInputFiles(await samplePdf(2));
+  const overlay = page.getByTestId("preview-overlay");
+  await expect(overlay).toHaveText("1");
+  await page.getByText("1 / 12", { exact: true }).click();
+  await page.getByLabel("İlk sayfayı (kapak) numaralandırma").check();
+  await expect(overlay).toHaveText("1 / 1");
+  await expect(page.getByText("Önizleme: 2. sayfa")).toBeVisible();
   expect(await pageIdsOf(await startAndDownload(page))).toEqual([0, 1]);
 
   await page.goto("/pdf-filigran-ekle");
   await page.getByTestId("file-input").setInputFiles(await samplePdf(1));
+  await expect(page.getByTestId("preview-overlay")).toHaveText("GİZLİDİR");
+  await page.getByLabel("Filigran metni").fill("TASLAK");
+  await expect(page.getByTestId("preview-overlay")).toHaveText("TASLAK");
   expect(await pageIdsOf(await startAndDownload(page))).toEqual([0]);
+});
+
+test("file lists show a preview of each PDF", async ({ page }) => {
+  await page.goto("/pdf-birlestir");
+  await page.getByTestId("file-input").setInputFiles([await samplePdf(2, "a.pdf"), await samplePdf(1, "b.pdf")]);
+  const thumbs = page.getByTestId("file-thumb");
+  await expect(thumbs).toHaveCount(2);
+  for (const thumb of await thumbs.all()) {
+    await expect(thumb).toHaveJSProperty("complete", true);
+    expect(await thumb.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
+  }
 });
 
 test("PDF to JPG renders every page", async ({ page }) => {

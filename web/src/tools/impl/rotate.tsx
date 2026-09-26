@@ -1,5 +1,6 @@
 "use client";
 
+import { FileList } from "@/components/tool/FileList";
 import { useRuntime } from "@/components/tool/runtime";
 import { Choice } from "@/components/tool/ui";
 import { readBytes } from "@/lib/files";
@@ -9,6 +10,10 @@ import type { ToolImpl, ToolViewProps } from "./shared/types";
 
 export interface RotateOptions {
   angle: Rotation;
+}
+
+function Main({ files, setFiles, options }: ToolViewProps<RotateOptions>) {
+  return <FileList files={files} onChange={setFiles} sortable={false} rotate={options.angle} />;
 }
 
 function Options({ options, setOptions }: ToolViewProps<RotateOptions>) {
@@ -30,6 +35,7 @@ function Options({ options, setOptions }: ToolViewProps<RotateOptions>) {
 
 const rotate: ToolImpl<RotateOptions> = {
   initialOptions: () => ({ angle: 90 }),
+  Main,
   Options,
   async run({ files, options }, { engine, dict }) {
     const outputs = [];

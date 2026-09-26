@@ -56,12 +56,23 @@ export async function openDocument(bytes: Uint8Array): Promise<RenderedDocument>
   };
 }
 
-export function canvasToBytes(canvas: HTMLCanvasElement, type: "image/png" | "image/jpeg", quality = 0.92) {
-  return new Promise<Uint8Array>((resolve, reject) => {
-    canvas.toBlob(
-      async (blob) => (blob ? resolve(new Uint8Array(await blob.arrayBuffer())) : reject(new Error("toBlob failed"))),
-      type,
-      quality,
-    );
+function canvasToBlob(canvas: HTMLCanvasElement, type: "image/png" | "image/jpeg", quality: number) {
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("toBlob failed"))), type, quality);
   });
+}
+
+export async function canvasToBytes(canvas: HTMLCanvasElement, type: "image/png" | "image/jpeg", quality = 0.92) {
+  return new Uint8Array(await (await canvasToBlob(canvas, type, quality)).arrayBuffer());
+}
+
+/** JPEG of the first page with its longer side at most `maxSide` px (file list thumbnails). */
+export async function renderFirstPage(bytes: Uint8Array, maxSide: number): Promise<Blob> {
+  const doc = await openDocument(bytes);
+  try {
+    const canvas = await doc.renderPage(0, { maxSide });
+    return await canvasToBlob(canvas, "image/jpeg", 0.8);
+  } finally {
+    await doc.destroy();
+  }
 }

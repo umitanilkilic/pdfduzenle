@@ -11,7 +11,7 @@ import { useWorkspace } from "@/workspace/context";
 import { toFile, toNewFiles } from "@/workspace/files";
 import { readHandoffIds } from "@/workspace/handoff";
 import { Dropzone } from "./Dropzone";
-import { FileList } from "./FileList";
+import { FileBar, FileList } from "./FileList";
 import { ResultPanel } from "./ResultPanel";
 import { useRuntime } from "./runtime";
 import type { NextTool } from "./types";
@@ -113,6 +113,7 @@ export function ToolShell<O>({ toolId, tool, accept, multiple, zipName, next }: 
     // Mobile: bottom padding leaves room for the fixed start button.
     <div className="grid gap-6 pb-24 lg:grid-cols-[1fr_20rem] lg:pb-0">
       <div className="border-border bg-surface-2/50 min-w-0 rounded-3xl border p-4 sm:p-6">
+        {Main && !multiple && <FileBar file={files[0]} onRemove={() => setFiles([])} />}
         {Main ? <Main {...view} /> : <FileList files={files} onChange={setFiles} sortable={multiple} />}
         {multiple && (
           <div className="mt-4">

@@ -4,6 +4,7 @@ import { PdfToolError } from "../errors";
 import { embedFont, embedImage } from "../embed";
 import { pageFrame, type VisualFrame } from "../geometry";
 import { loadPdf, savePdf } from "../load";
+import { pageLabel } from "../pageLabels";
 
 /** Draws text upright (as seen on screen) with its bottom-left corner at the visual point (x, y). */
 function drawVisualText(
@@ -72,10 +73,6 @@ export interface PageNumberOptions {
   color: string;
 }
 
-export function formatPageLabel(template: string, n: number, total: number): string {
-  return template.replaceAll("{n}", String(n)).replaceAll("{total}", String(total));
-}
-
 export async function addPageNumbers(
   bytes: Uint8Array,
   opts: PageNumberOptions,
@@ -84,12 +81,10 @@ export async function addPageNumbers(
   const doc = await loadPdf(bytes);
   const font = await embedFont(doc, fontBytes);
   const pages = doc.getPages();
-  const numbered = pages.length - opts.firstPage;
 
   pages.forEach((page, i) => {
-    if (i < opts.firstPage) return;
-    const n = opts.start + i - opts.firstPage;
-    const label = formatPageLabel(opts.template, n, opts.start + numbered - 1);
+    const label = pageLabel(i, pages.length, opts);
+    if (label === null) return;
     const frame = pageFrame(page);
     const width = font.widthOfTextAtSize(label, opts.fontSize);
     const x =

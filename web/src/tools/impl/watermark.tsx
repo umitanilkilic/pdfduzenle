@@ -1,7 +1,13 @@
 "use client";
 
+import { PageImage } from "@/components/tool/PageImage";
+import { PdfPreviewGate } from "@/components/tool/PdfPreviewGate";
 import { useRuntime } from "@/components/tool/runtime";
 import { Choice, Field, Slider, TextInput } from "@/components/tool/ui";
+import { useFileThumbnail } from "@/components/tool/useFileThumbnail";
+import { usePageSize } from "@/components/tool/usePageSize";
+import type { PdfPreview } from "@/components/tool/usePdfDocument";
+import { format } from "@/i18n";
 import { readBytes } from "@/lib/files";
 import { PdfToolError } from "@/pdf/errors";
 import type { WatermarkOptions as EngineOptions } from "@/pdf/ops/stamp";
@@ -18,6 +24,59 @@ export interface WatermarkOptions {
   angle: number;
   image: File | null;
   scale: number;
+}
+
+function WatermarkPreview({ preview, options: o }: { preview: PdfPreview; options: WatermarkOptions }) {
+  const { dict } = useRuntime();
+  const size = usePageSize(preview, 0);
+  const imageUrl = useFileThumbnail(o.kind === "image" ? o.image : null, 1200);
+  // Centred like the engine; CSS rotates clockwise, the PDF counter-clockwise.
+  const style = {
+    left: "50%",
+    top: "50%",
+    opacity: o.opacity,
+    transform: `translate(-50%, -50%) rotate(${-o.angle}deg)`,
+  };
+
+  return (
+    <>
+      <PageImage thumbs={preview.thumbs} index={0} alt={format(dict.ui.page, { n: 1 })}>
+        {size && (
+          <div className="[container-type:size] pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+            {o.kind === "text"
+              ? o.text.trim() && (
+                  <span
+                    data-testid="preview-overlay"
+                    className="absolute leading-none whitespace-nowrap"
+                    style={{ ...style, color: o.color, fontSize: `${(o.fontSize / size.width) * 100}cqw` }}
+                  >
+                    {o.text}
+                  </span>
+                )
+              : imageUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element -- blob URL rendered in the browser
+                  <img
+                    src={imageUrl}
+                    alt=""
+                    data-testid="preview-overlay"
+                    className="absolute max-w-none"
+                    style={{ ...style, width: `${o.scale * 100}%` }}
+                  />
+                )}
+          </div>
+        )}
+      </PageImage>
+      <p className="text-muted mt-3 text-center text-sm">{dict.toolUi.watermark.preview}</p>
+    </>
+  );
+}
+
+function Main({ files, options }: ToolViewProps<WatermarkOptions>) {
+  return (
+    <PdfPreviewGate file={files[0]}>
+      {(preview) => <WatermarkPreview preview={preview} options={options} />}
+    </PdfPreviewGate>
+  );
 }
 
 function Options({ options, setOptions }: ToolViewProps<WatermarkOptions>) {
@@ -118,6 +177,7 @@ const watermark: ToolImpl<WatermarkOptions> = {
     image: null,
     scale: 0.5,
   }),
+  Main,
   Options,
   async run({ files: [file], options }, { engine, loadFont, dict }) {
     const bytes = await engine.addWatermark(await readBytes(file), await toEngineOptions(options), await loadFont());

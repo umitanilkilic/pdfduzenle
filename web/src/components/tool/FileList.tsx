@@ -9,6 +9,7 @@ import { formatBytes } from "@/lib/files";
 import { useSortSensors } from "./sortable";
 import { useRuntime } from "./runtime";
 import { IconButton } from "./ui";
+import { useFileThumbnail } from "./useFileThumbnail";
 
 /** Stable per-file keys so React and dnd-kit can track files across reorders. */
 const keys = new WeakMap<File, string>();
@@ -23,10 +24,13 @@ export function FileList({
   files,
   onChange,
   sortable,
+  rotate = 0,
 }: {
   files: File[];
   onChange(files: File[]): void;
   sortable: boolean;
+  /** Visual rotation of the previews in degrees (rotate tool). */
+  rotate?: number;
 }) {
   const { dict } = useRuntime();
   const ids = useMemo(() => files.map(fileKey), [files]);
@@ -49,6 +53,7 @@ export function FileList({
                 id={ids[i]}
                 file={file}
                 sortable={sortable && files.length > 1}
+                rotate={rotate}
                 onRemove={() => onChange(files.filter((_, j) => j !== i))}
               />
             ))}
@@ -59,14 +64,24 @@ export function FileList({
   );
 }
 
-function Row({ id, file, sortable, onRemove }: { id: string; file: File; sortable: boolean; onRemove(): void }) {
+function Row({
+  id,
+  file,
+  sortable,
+  rotate,
+  onRemove,
+}: {
+  id: string;
+  file: File;
+  sortable: boolean;
+  rotate: number;
+  onRemove(): void;
+}) {
   const { dict, locale } = useRuntime();
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id,
     disabled: !sortable,
   });
-  const Icon = file.type.startsWith("image/") ? ImageIcon : FileText;
-
   return (
     <li
       ref={setNodeRef}
@@ -84,9 +99,7 @@ function Row({ id, file, sortable, onRemove }: { id: string; file: File; sortabl
           <GripVertical className="size-5" aria-hidden />
         </button>
       )}
-      <span className="bg-brand-soft text-brand grid size-10 shrink-0 place-items-center rounded-xl">
-        <Icon className="size-5" aria-hidden />
-      </span>
+      <Thumb file={file} rotate={rotate} />
       <span className="min-w-0 flex-1">
         <span className="block truncate text-sm font-medium">{file.name}</span>
         <span className="text-muted text-xs">{formatBytes(file.size, locale)}</span>
@@ -95,5 +108,50 @@ function Row({ id, file, sortable, onRemove }: { id: string; file: File; sortabl
         <X className="size-4" aria-hidden />
       </IconButton>
     </li>
+  );
+}
+
+function Thumb({ file, rotate }: { file: File; rotate: number }) {
+  const url = useFileThumbnail(file, 160);
+  const Icon = file.type.startsWith("image/") ? ImageIcon : FileText;
+
+  if (url === null) {
+    return (
+      <span className="bg-brand-soft text-brand grid size-14 shrink-0 place-items-center rounded-lg">
+        <Icon className="size-5" aria-hidden />
+      </span>
+    );
+  }
+  return (
+    <span className="bg-surface-2 grid size-14 shrink-0 place-items-center overflow-hidden rounded-lg">
+      {url ? (
+        // eslint-disable-next-line @next/next/no-img-element -- blob URL rendered in the browser
+        <img
+          src={url}
+          alt=""
+          data-testid="file-thumb"
+          draggable={false}
+          className="max-h-full max-w-full shadow-sm transition-transform"
+          style={{ transform: `rotate(${rotate}deg)` }}
+        />
+      ) : (
+        <span className="bg-border size-1/2 animate-pulse rounded" />
+      )}
+    </span>
+  );
+}
+
+/** Name and size of the file behind a page preview, with a button to pick another one. */
+export function FileBar({ file, onRemove }: { file: File; onRemove(): void }) {
+  const { dict, locale } = useRuntime();
+  return (
+    <div className="mb-4 flex items-center gap-2 text-sm">
+      <FileText className="text-brand size-4 shrink-0" aria-hidden />
+      <span className="min-w-0 truncate font-medium">{file.name}</span>
+      <span className="text-muted shrink-0">{formatBytes(file.size, locale)}</span>
+      <IconButton label={dict.dropzone.remove} onClick={onRemove} className="ml-auto">
+        <X className="size-4" aria-hidden />
+      </IconButton>
+    </div>
   );
 }
