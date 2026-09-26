@@ -54,8 +54,8 @@ These apply to every change in every service. A change is not done until they ho
 ## Commands
 
 - web: `cd web && npm run dev` · `npm run lint` · `npm run typecheck` · `npm test` · `npm run build` · `npm run format`
-- web e2e: `npm run build && npm run test:e2e` (starts `next start` on port 3100; set `PW_CHROMIUM_PATH` to use a
-  preinstalled Chromium instead of `npx playwright install`)
+- web e2e: `npm run build:e2e && npm run test:e2e` (`build:e2e` bakes in test analytics IDs; starts `next start` on
+  port 3100; set `PW_CHROMIUM_PATH` to use a preinstalled Chromium instead of `npx playwright install`)
 - gateway: `cd services/gateway && gofmt -l . && go vet ./... && go test ./...`
 - ocr: `cd services/ocr && uv run pytest && uv run ruff check .`
 - everything: `docker compose up --build`
@@ -107,6 +107,20 @@ These apply to every change in every service. A change is not done until they ho
 - `src/tools/impl/` holds one file per tool (named by tool id); helpers shared by several tools live in
   `src/tools/impl/shared/`. Keep that split when adding tools.
 
+### Analytics and consent (`web/src/lib/analytics`, `web/src/components/analytics`)
+
+- Everything is off unless `NEXT_PUBLIC_GA_ID` / `NEXT_PUBLIC_CLARITY_ID` are set at build time (validated in
+  `config.ts`, since they end up in inline scripts). The CSP (`src/lib/csp.ts`) adds only the hosts of the
+  configured services.
+- GA uses Consent Mode v2: `gtagInitScript()` sets the defaults (analytics from the saved choice, ads always
+  denied) before gtag.js; `ConsentBanner` updates it. Clarity is loaded only after consent; revoking expires
+  the cookies and reloads. The choice is `localStorage["analytics-consent"]`.
+- Product events go through `useAnalytics()` (`createAnalytics`, fake it in tests). Only tool IDs, error codes
+  and counts: never file names, contents or typed text. Wrap UI that shows file names or document content in
+  `data-clarity-mask="true"` (the tool area and history drawer already are).
+- Fixed pages (privacy) have per-locale paths in `src/lib/pages.ts`; the sitemap and language switcher use it.
+- e2e specs import `test` from `e2e/base.ts`: it stubs the analytics hosts and pre-answers the consent banner.
+
 ### Workspace: recent files and tool chaining (`web/src/workspace`)
 
 - Every tool result is kept in IndexedDB on the visitor's device for 24 hours (`store.ts`, never uploaded).
@@ -123,7 +137,7 @@ These apply to every change in every service. A change is not done until they ho
   consistent, no dead code or leftover debug files, `git status` shows nothing unexpected and no new file is
   swallowed by a `.gitignore`.
 - Update this file when structure, commands or conventions change.
-- Run everything, not only unit tests: `npm run build` then the full Playwright suite (it starts the gateway
+- Run everything, not only unit tests: `npm run build:e2e` then the full Playwright suite (it starts the gateway
   and OCR service); `go test -race ./...`; `uv run pytest`.
 - UI changes: check screenshots on desktop and a 390 px phone, light and dark.
 - No hard-coded user-facing strings; Turkish copy first, English typed against it.

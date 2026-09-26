@@ -2,8 +2,9 @@
 
 import { AlertCircle, Loader2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { useAnalytics } from "@/components/analytics/context";
 import { cn } from "@/lib/cn";
-import { errorMessage } from "@/tools/impl/shared/errors";
+import { errorCode, errorMessage } from "@/tools/impl/shared/errors";
 import type { JobStage } from "@/api/gateway";
 import { matchesAccept } from "@/lib/files";
 import type { ToolImpl, OutputFile } from "@/tools/impl/shared/types";
@@ -36,6 +37,7 @@ interface Props<O> {
 export function ToolShell<O>({ toolId, tool, accept, multiple, zipName, next }: Props<O>) {
   const services = useRuntime();
   const workspace = useWorkspace();
+  const analytics = useAnalytics();
   const { dict } = services;
   const [files, setFilesState] = useState<File[]>([]);
   const [options, setOptionsState] = useState<O>(() => tool.initialOptions(services));
@@ -71,10 +73,13 @@ export function ToolShell<O>({ toolId, tool, accept, multiple, zipName, next }: 
   async function start() {
     const invalid = tool.validate?.(options);
     if (invalid) {
+      analytics.toolFailed(toolId, invalid);
       setPhase({ kind: "error", message: dict.errors[invalid] });
       return;
     }
     setPhase({ kind: "working", stage: "working" });
+    analytics.toolStarted(toolId, files.length);
+    const startedAt = performance.now();
     try {
       const report = (stage: JobStage) => setPhase({ kind: "working", stage });
       const outputs = await tool.run({ files, options, report }, services);
@@ -83,9 +88,11 @@ export function ToolShell<O>({ toolId, tool, accept, multiple, zipName, next }: 
         console.warn("Could not keep results on this device", err);
         return [];
       });
+      analytics.toolSucceeded(toolId, outputs.length, performance.now() - startedAt);
       setPhase({ kind: "done", outputs, savedIds: saved.map((f) => f.id) });
     } catch (err) {
       if (process.env.NODE_ENV !== "production") console.error(err);
+      analytics.toolFailed(toolId, errorCode(err));
       setPhase({ kind: "error", message: errorMessage(err, dict) });
     }
   }
@@ -98,7 +105,14 @@ export function ToolShell<O>({ toolId, tool, accept, multiple, zipName, next }: 
 
   if (phase.kind === "done") {
     return (
-      <ResultPanel outputs={phase.outputs} savedIds={phase.savedIds} zipName={zipName} next={next} onReset={reset} />
+      <ResultPanel
+        toolId={toolId}
+        outputs={phase.outputs}
+        savedIds={phase.savedIds}
+        zipName={zipName}
+        next={next}
+        onReset={reset}
+      />
     );
   }
 

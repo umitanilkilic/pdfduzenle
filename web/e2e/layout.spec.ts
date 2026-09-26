@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./base";
 
 for (const path of ["/", "/en", "/pdf-imzala", "/en/organize-pdf"]) {
   test(`no horizontal overflow on ${path} @mobile`, async ({ page }) => {

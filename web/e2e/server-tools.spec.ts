@@ -1,5 +1,5 @@
 import { readFile } from "node:fs/promises";
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./base";
 import { PDFDocument } from "pdf-lib";
 import { samplePdf, startAndDownload } from "./helpers";
 

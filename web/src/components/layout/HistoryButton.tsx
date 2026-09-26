@@ -79,7 +79,13 @@ export function HistoryButton({ locale, labels, tools }: Props) {
       {/* Portal: the header's backdrop-filter would otherwise confine this fixed panel to the header. */}
       {open &&
         createPortal(
-          <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label={labels.title}>
+          <div
+            className="fixed inset-0 z-50"
+            role="dialog"
+            aria-modal="true"
+            aria-label={labels.title}
+            data-clarity-mask="true"
+          >
             <div className="absolute inset-0 bg-black/30" onClick={() => setOpen(false)} />
             <aside className="bg-surface absolute inset-y-0 right-0 flex w-full max-w-md flex-col shadow-2xl">
               <header className="border-border flex items-center justify-between border-b px-5 py-4">

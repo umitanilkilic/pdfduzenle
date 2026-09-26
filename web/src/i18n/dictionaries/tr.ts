@@ -116,6 +116,15 @@ export const tr = {
     tagline: "Türkçe, ücretsiz ve güvenli online PDF araçları.",
     tools: "Araçlar",
     openSource: "AGPL-3.0 lisanslı açık kaynak",
+    privacy: "Gizlilik ve çerezler",
+    cookieSettings: "Çerez tercihleri",
+  },
+  consent: {
+    text: "Siteyi geliştirmek için Google Analytics ve Microsoft Clarity kullanıyoruz. İzin verirseniz ziyaret istatistikleri için çerez kullanılır. Dosyalarınız ve dosya adlarınız asla gönderilmez.",
+    accept: "Kabul et",
+    reject: "Reddet",
+    more: "Ayrıntılar",
+    label: "Çerez izni",
   },
   errors: {
     invalidPdf: "Bu dosya geçerli bir PDF değil ya da bozuk. PDF Onar aracını deneyebilirsiniz.",
@@ -310,6 +319,50 @@ export const tr = {
       keywords: "Anahtar kelimeler (virgülle ayırın)",
       creator: "Oluşturan uygulama",
     },
+  },
+  privacy: {
+    title: "Gizlilik ve çerezler",
+    description: "pdfduzenle.tr dosyalarınızı, kullanım verilerini ve çerezleri nasıl işler.",
+    updated: "Son güncelleme: 26 Eylül 2026",
+    sections: [
+      {
+        heading: "Dosyalarınız",
+        paragraphs: [
+          "Tarayıcıda çalışan araçlarda (birleştir, böl, döndür, filigran, imza vb.) dosyanız cihazınızdan çıkmaz; işlem tamamen tarayıcınızda yapılır.",
+          "Sunucuda çalışan araçlarda (sıkıştır, Office dönüşümleri, şifreleme, OCR vb.) dosya şifreli bağlantıyla sunucumuza gönderilir, yalnızca o iş için kullanılır ve iş bitince, en geç 1 saat içinde silinir. Dosya adları diskte kullanılmaz, şifreler kaydedilmez.",
+          "OCR'ın Unlimited-OCR modunda sayfa görüntüleri metin tanıma için GPU sunucusuna gönderilir. Hızlı mod dosyayı kendi sunucumuzdan çıkarmaz.",
+        ],
+      },
+      {
+        heading: "Son işlemler",
+        paragraphs: [
+          'Sonuç dosyaları "Son işlemler" panelinde yalnızca sizin tarayıcınızda (IndexedDB) 24 saat tutulur ve hiçbir sunucuya gönderilmez. Panelden istediğiniz an silebilirsiniz.',
+        ],
+      },
+      {
+        heading: "Analitik ve çerezler",
+        paragraphs: [
+          "Siteyi geliştirmek için Google Analytics 4 ve Microsoft Clarity kullanıyoruz. Reklam çerezi kullanmıyoruz ve verileri reklam için paylaşmıyoruz.",
+          "İzin vermezseniz çerez kullanılmaz ve Microsoft Clarity yüklenmez. Google Analytics yalnızca çerezsiz, kimliksiz ölçüm sinyalleri alır (Google Consent Mode).",
+          "İzin verirseniz Google Analytics ziyaret istatistikleri için çerez (_ga, _ga_*) kullanır. Microsoft Clarity ise ısı haritası ve oturum kaydı için çerez (_clck, _clsk) kullanır. Clarity'de dosya adları ve araç alanları maskelenir; belge önizlemeleri gönderilmez.",
+          "Ölçtüğümüz olaylar: hangi aracın kullanıldığı, dosya sayısı, işlemin süresi, başarılı olup olmadığı (hata kodu), indirme ve bir sonraki araca geçiş. Dosya adı, dosya içeriği veya yazdığınız metinler gönderilmez.",
+          'Tercihinizi istediğiniz zaman sayfanın altındaki "Çerez tercihleri" bağlantısından değiştirebilirsiniz.',
+        ],
+      },
+      {
+        heading: "Diğer kayıtlar",
+        paragraphs: [
+          "Tema ve çerez tercihiniz tarayıcınızda (localStorage) saklanır.",
+          "Kötüye kullanımı önlemek için IP adresiniz yalnızca istek sınırlaması amacıyla kısa süre bellekte tutulur; sunucu uygulamamız IP adreslerini kayda yazmaz.",
+        ],
+      },
+      {
+        heading: "Açık kaynak ve iletişim",
+        paragraphs: [
+          "Sitenin tüm kaynak kodu GitHub'da açıktır; yukarıdakilerin nasıl yapıldığını kodda görebilirsiniz. Sorularınız için GitHub üzerinden bize ulaşabilirsiniz.",
+        ],
+      },
+    ],
   },
   notFound: {
     title: "Sayfa bulunamadı",

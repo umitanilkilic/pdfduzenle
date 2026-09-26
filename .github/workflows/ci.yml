@@ -90,7 +90,8 @@ jobs:
         working-directory: services/ocr
       - run: npm ci && npx playwright install --with-deps chromium
         working-directory: web
-      - run: npm run build && npm run test:e2e
+      # Test IDs turn on the analytics code paths; e2e/test.ts stubs the third-party hosts.
+      - run: npm run build:e2e && npm run test:e2e
         working-directory: web
       - if: failure()
         uses: actions/upload-artifact@v7

@@ -2,6 +2,7 @@
 
 import { CheckCircle2, Download, FileDown, RotateCcw } from "lucide-react";
 import Link from "next/link";
+import { useAnalytics } from "@/components/analytics/context";
 import { ToolIcon } from "@/components/ToolIcon";
 import { downloadBytes, zipOutputs } from "@/lib/download";
 import { format } from "@/i18n";
@@ -14,12 +15,14 @@ import { useRuntime } from "./runtime";
 import { Button } from "./ui";
 
 export function ResultPanel({
+  toolId,
   outputs,
   savedIds,
   zipName,
   next,
   onReset,
 }: {
+  toolId: string;
   outputs: OutputFile[];
   /** Ids of the outputs kept on this device, handed to the next tool. */
   savedIds: string[];
@@ -28,6 +31,7 @@ export function ResultPanel({
   onReset(): void;
 }) {
   const { dict, locale } = useRuntime();
+  const analytics = useAnalytics();
   const single = outputs.length === 1;
   const nextTools = toolsAcceptingAny(outputs, next);
   const first = outputs[0];
@@ -48,7 +52,10 @@ export function ResultPanel({
           {single ? (
             <Button
               className="h-14 px-8 text-base"
-              onClick={() => downloadBytes(outputs[0].bytes, outputs[0].name, outputs[0].type)}
+              onClick={() => {
+                analytics.downloaded(toolId, "file");
+                downloadBytes(outputs[0].bytes, outputs[0].name, outputs[0].type);
+              }}
             >
               <Download className="size-5" aria-hidden />
               {dict.process.download}
@@ -56,7 +63,10 @@ export function ResultPanel({
           ) : (
             <Button
               className="h-14 px-8 text-base"
-              onClick={() => downloadBytes(zipOutputs(outputs), zipName, "application/zip")}
+              onClick={() => {
+                analytics.downloaded(toolId, "zip");
+                downloadBytes(zipOutputs(outputs), zipName, "application/zip");
+              }}
             >
               <Download className="size-5" aria-hidden />
               {dict.process.downloadAll}
@@ -76,7 +86,14 @@ export function ResultPanel({
               <FileDown className="text-muted size-4 shrink-0" aria-hidden />
               <span className="min-w-0 flex-1 truncate text-sm">{out.name}</span>
               <span className="text-muted text-xs">{formatBytes(out.bytes.byteLength, locale)}</span>
-              <Button variant="ghost" className="h-8 px-3" onClick={() => downloadBytes(out.bytes, out.name, out.type)}>
+              <Button
+                variant="ghost"
+                className="h-8 px-3"
+                onClick={() => {
+                  analytics.downloaded(toolId, "file");
+                  downloadBytes(out.bytes, out.name, out.type);
+                }}
+              >
                 {dict.process.download}
               </Button>
             </li>
@@ -92,6 +109,7 @@ export function ResultPanel({
               <li key={tool.href}>
                 <Link
                   href={handoffHref(tool.href, savedIds)}
+                  onClick={() => analytics.nextToolChosen(toolId, tool.id)}
                   className="border-border hover:bg-surface-2 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition"
                 >
                   <ToolIcon name={tool.icon} className="size-4" style={{ color: `var(--cat-${tool.category})` }} />

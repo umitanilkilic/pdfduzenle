@@ -83,7 +83,7 @@ cd services/ocr && uv sync && uv run uvicorn app.main:app --port 8000
 # web
 cd web
 npm run lint && npm run typecheck && npm test      # ESLint, TypeScript, Vitest
-npm run build && npm run test:e2e                  # Playwright; starts the gateway and OCR service itself
+npm run build:e2e && npm run test:e2e              # Playwright; starts the gateway and OCR service itself
 
 # gateway
 cd services/gateway && gofmt -l . && go vet ./... && go test -race ./...
@@ -116,8 +116,9 @@ translation is a compile error. For a German (`de`) translation, for example:
    (e.g. `slug: { tr: "pdf-birlestir", en: "merge-pdf", de: "pdf-zusammenfuegen" }`). Slugs are lowercase
    ASCII words joined by `-`.
 5. **Add the routes**: copy `web/src/app/(en)/` to `web/src/app/(de)/`, rename the inner `en` folder to
-   `de` and replace `"en"` with `"de"` in its five files. (Each language has its own route group so that
-   every page is static and has the right `<html lang>`.)
+   `de`, replace `"en"` with `"de"` in its files, and add a `de` path to each page in `web/src/lib/pages.ts`
+   (e.g. `privacy: { …, de: "/datenschutz" }`), renaming the `privacy` folder to match. (Each language has
+   its own route group so that every page is static and has the right `<html lang>`.)
 6. Run `npm run typecheck`, `npm test` and `npm run build`; the language switcher, sitemap, `hreflang`
    links and menus pick the new language up automatically.
 
@@ -151,6 +152,12 @@ be reached directly from outside.
 | --- | --- | --- |
 | `NEXT_PUBLIC_SITE_URL` | `https://pdfduzenle.tr` | Base of canonical, hreflang, sitemap and OG URLs |
 | `GATEWAY_URL` | `http://localhost:8080` (`http://gateway:8080` in compose) | Where `/api` requests go |
+| `NEXT_PUBLIC_GA_ID` | empty (off) | Google Analytics 4 measurement ID (`G-…`) |
+| `NEXT_PUBLIC_CLARITY_ID` | empty (off) | Microsoft Clarity project ID |
+| `GOOGLE_SITE_VERIFICATION` / `BING_SITE_VERIFICATION` / `YANDEX_SITE_VERIFICATION` | empty | Search Console / Bing Webmaster / Yandex Webmaster verification token (the `content` of their meta tag) |
+
+With docker compose, set these in `.env`; they are baked into the static pages, so changing them needs
+`docker compose up -d --build`.
 
 **gateway**
 
@@ -191,6 +198,12 @@ be reached directly from outside.
 - In **Unlimited-OCR** mode, page images are sent to the GPU server; **Fast** mode (Tesseract) never lets
   the file leave our servers. The UI and FAQ say so explicitly (KVKK, Turkey's data protection law).
 - "Recent files" live only in the visitor's browser and are never sent to a server.
+- Analytics (only when the IDs above are set): Google Analytics 4 runs in Consent Mode v2 (cookieless
+  until the visitor accepts; ads signals always denied), and Microsoft Clarity loads only after consent,
+  with tool areas and the recent-files drawer masked. Custom events (`tool_start`, `tool_success`,
+  `tool_error`, `file_download_result`, `next_tool`) carry tool IDs, error codes and counts only, never
+  file names or contents. Details for visitors are on `/gizlilik` (`/en/privacy`); review that text with
+  your own legal requirements (KVKK/GDPR) in mind.
 
 To report a security issue, please open a private advisory on GitHub (Security → Report a vulnerability)
 instead of a public issue.
