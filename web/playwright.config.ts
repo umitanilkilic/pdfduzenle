@@ -17,9 +17,16 @@ export default defineConfig({
     { name: "desktop", use: { ...devices["Desktop Chrome"] } },
     { name: "mobile", use: { ...devices["Pixel 7"] }, grep: /@mobile/ },
   ],
-  webServer: {
-    command: `npx next start -p ${port}`,
-    port,
-    reuseExistingServer: true,
-  },
+  webServer: [
+    { command: `npx next start -p ${port}`, port, reuseExistingServer: true },
+    // Server-side tools need the Go gateway (and qpdf, Ghostscript, LibreOffice on the machine).
+    {
+      command: "go run ./cmd/gateway",
+      cwd: "../services/gateway",
+      url: "http://localhost:8080/api/health",
+      reuseExistingServer: true,
+      timeout: 120_000,
+      env: { GATEWAY_WORK_DIR: "/tmp/pdfduzenle-e2e", GATEWAY_RATE_PER_MINUTE: "600", GATEWAY_RATE_BURST: "100" },
+    },
+  ],
 });

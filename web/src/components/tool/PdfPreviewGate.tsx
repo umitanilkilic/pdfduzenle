@@ -1,7 +1,7 @@
 "use client";
 
 import { AlertCircle, Loader2 } from "lucide-react";
-import { errorMessage } from "@/tools/browser/errors";
+import { errorMessage } from "@/tools/impl/errors";
 import { useRuntime } from "./runtime";
 import { usePdfDocument, type PdfPreview } from "./usePdfDocument";
 

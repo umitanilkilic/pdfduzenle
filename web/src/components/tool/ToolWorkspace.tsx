@@ -1,11 +1,11 @@
 import { Upload } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n";
-import { hasBrowserTool } from "@/tools/browser";
+import { hasToolImpl } from "@/tools/impl";
 import { getToolContent } from "@/tools/content";
 import { toolPath } from "@/tools/paths";
 import { getTool, type ToolId } from "@/tools/registry";
-import { BrowserToolRunner } from "./BrowserToolRunner";
+import { ToolRunner } from "./ToolRunner";
 import { ToolRuntimeProvider } from "./runtime";
 import type { NextTool } from "./types";
 
@@ -13,7 +13,7 @@ export function ToolWorkspace({ locale, toolId }: { locale: Locale; toolId: Tool
   const dict = getDictionary(locale);
   const tool = getTool(toolId);
 
-  if (!hasBrowserTool(toolId)) {
+  if (!hasToolImpl(toolId)) {
     return (
       <div className="border-border bg-surface grid min-h-64 place-items-center rounded-3xl border-2 border-dashed p-10 text-center">
         <div>
@@ -31,7 +31,7 @@ export function ToolWorkspace({ locale, toolId }: { locale: Locale; toolId: Tool
 
   return (
     <ToolRuntimeProvider dict={dict} locale={locale}>
-      <BrowserToolRunner
+      <ToolRunner
         toolId={toolId}
         accept={tool.accept}
         multiple={tool.multiple}

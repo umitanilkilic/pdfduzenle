@@ -44,3 +44,9 @@ export function matchesAccept(file: { name: string; type: string }, accept: stri
       a.startsWith(".") ? name.endsWith(a) : a.endsWith("/*") ? file.type.startsWith(a.slice(0, -1)) : file.type === a,
     );
 }
+
+/** Size reduction as a whole percentage, or null when the output is not smaller. */
+export function savedPercent(originalSize: number, newSize: number): number | null {
+  if (originalSize <= 0 || newSize >= originalSize) return null;
+  return Math.round((1 - newSize / originalSize) * 100);
+}

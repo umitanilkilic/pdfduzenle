@@ -4,8 +4,9 @@ import { CheckCircle2, Download, FileDown, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import { ToolIcon } from "@/components/ToolIcon";
 import { downloadBytes, zipOutputs } from "@/lib/download";
-import { formatBytes } from "@/lib/files";
-import type { OutputFile } from "@/tools/browser/types";
+import { format } from "@/i18n";
+import { formatBytes, savedPercent } from "@/lib/files";
+import type { OutputFile } from "@/tools/impl/types";
 import type { NextTool } from "./types";
 import { useRuntime } from "./runtime";
 import { Button } from "./ui";
@@ -23,12 +24,20 @@ export function ResultPanel({
 }) {
   const { dict, locale } = useRuntime();
   const single = outputs.length === 1;
+  const first = outputs[0];
+  const saved = single && first.originalSize ? savedPercent(first.originalSize, first.bytes.byteLength) : null;
 
   return (
     <div className="border-border bg-surface rounded-3xl border p-6 sm:p-10">
       <div className="text-center">
         <CheckCircle2 className="text-ok mx-auto size-12" aria-hidden />
         <h2 className="mt-3 text-2xl font-bold">{dict.process.done}</h2>
+        {saved !== null && first.originalSize && (
+          <p className="text-muted mt-2" data-testid="savings">
+            {formatBytes(first.originalSize, locale)} → {formatBytes(first.bytes.byteLength, locale)} ·{" "}
+            <strong className="text-ok">{format(dict.process.savedPercent, { percent: saved })}</strong>
+          </p>
+        )}
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           {single ? (
             <Button

@@ -79,7 +79,7 @@ These apply to every change in every service. A change is not done until they ho
 - Theme colors are CSS variables in `src/app/globals.css`; dark mode uses `data-theme="dark"` on `<html>`.
 - Browser tools must not upload files. Anything heavy (pdf.js, pdf-lib) is loaded lazily on the tool page.
 
-### Browser tools (`web/src/pdf`, `web/src/tools/browser`, `web/src/components/tool`)
+### Tool implementations (`web/src/pdf`, `web/src/tools/impl`, `web/src/components/tool`)
 
 - `src/pdf/ops/*` – pure pdf-lib operations (`Uint8Array` in → out), unit-tested in Node. Errors are
   `PdfToolError` with a code that maps to `dict.errors.*`. Drawing on rotated pages goes through
@@ -88,10 +88,28 @@ These apply to every change in every service. A change is not done until they ho
   `worker.ts`/`client.ts`); tests use `createInlineEngine()`. Inject it via `ToolRuntimeProvider`.
 - `src/pdf/render.ts` – pdf.js for previews and PDF → image. Use the **legacy** build: the modern build
   needs very new JS APIs (e.g. `Map#getOrInsertComputed`) and breaks in many browsers.
-- A tool is a `BrowserTool<Options>` (`src/tools/browser/types.ts`): `initialOptions`, optional `Main`/`Options`
-  views and a `run()` that receives its services (engine, font, dict). `ToolShell` owns file selection,
-  progress, errors and results. Register new tools in `src/tools/browser/index.ts` (code-split loaders).
+- A tool is a `ToolImpl<Options>` (`src/tools/impl/types.ts`): `initialOptions`, optional `Main`/`Options`
+  views, optional `validate()` and a `run()` that receives its services (engine, gateway, font, dict).
+  `ToolShell` owns file selection, progress, errors and results. Register tools in `src/tools/impl/index.ts`
+  (code-split loaders).
+- Server tools use `createServerTool()` (`src/tools/impl/server.tsx`): upload → poll → download → delete via
+  the `GatewayClient` (`src/api/gateway.ts`). Gateway error codes map to `dict.errors.*` like `PdfToolError`.
+- `next.config.ts` raises `proxyClientMaxBodySize` so uploads through the `/api` rewrite are not cut at 10 MB.
 - Text drawn into PDFs uses the embedded Inter font (`public/fonts`) so Turkish characters work.
+
+## services/gateway conventions
+
+- Layers: `httpapi` (transport, defines the small `JobManager`/`Limiter` interfaces it needs) → `jobs`
+  (queue, per-pool concurrency, TTL cleanup) → `tools` (one `Tool` per operation) → `runner` (process
+  execution). `cmd/gateway/main.go` is the only place that wires concrete types together.
+- API: `POST /api/tools/{id}` (multipart `files` + option fields) → `202 {id}`; `GET /api/jobs/{id}`;
+  `GET /api/jobs/{id}/files/{n}`; `DELETE /api/jobs/{id}`. Errors are `{"error": code}`.
+- External programs run through `runner.Runner` with argument arrays and per-tool timeouts; secrets
+  (passwords) go through 0600 files in the job directory, never argv. Uploaded file names are never used
+  on disk.
+- Tool tests: unit tests use a fake runner; `integration_test.go` runs the real qpdf/gs/LibreOffice and
+  skips when they are missing. Server tools e2e (`web/e2e/server-tools.spec.ts`) start the gateway too.
+- Runtime needs `ghostscript`, `qpdf` and the LibreOffice `-nogui` Writer/Calc/Impress/Draw packages.
 
 ## Licensing rules
 

@@ -1,5 +1,8 @@
 # pdfduzenle.tr – new stack (web + gateway + ocr).
-# The reverse proxy on the external `webnet` network forwards the domain to `web:3000`.
+# The reverse proxy on the external `webnet` network should forward
+#   /api/*      → gateway:8080   (uploads go straight to Go, no buffering in Node)
+#   everything  → web:3000
+# Routing only to web:3000 also works: Next rewrites /api/* to the gateway.
 services:
   web:
     build:
@@ -18,10 +21,15 @@ services:
     environment:
       GATEWAY_MAX_UPLOAD_MB: "100"
       GATEWAY_JOB_TTL: 1h
+      GATEWAY_OFFICE_WORKERS: "2"
+      GATEWAY_GS_WORKERS: "2"
+      # Proxies that append to X-Forwarded-For before the gateway (used for rate limiting):
+      # 1 when the reverse proxy sends /api straight here, 2 when /api goes through web.
+      GATEWAY_TRUSTED_PROXY_HOPS: "1"
       OCR_SERVICE_URL: http://ocr:8000
     tmpfs:
       - /tmp:size=4g
-    networks: [internal]
+    networks: [internal, webnet]
     restart: unless-stopped
 
   ocr:

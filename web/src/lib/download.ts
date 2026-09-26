@@ -1,5 +1,5 @@
 import { zipSync } from "fflate";
-import type { OutputFile } from "@/tools/browser/types";
+import type { OutputFile } from "@/tools/impl/types";
 
 export function downloadBytes(bytes: Uint8Array, name: string, type: string) {
   const url = URL.createObjectURL(new Blob([bytes as BlobPart], { type }));

@@ -1,11 +1,12 @@
 "use client";
 
 import { createContext, useContext, useState } from "react";
+import { createGatewayClient, type GatewayClient } from "@/api/gateway";
 import type { Dictionary } from "@/i18n";
 import type { Locale } from "@/i18n/config";
 import { createWorkerEngine } from "@/pdf/client";
 import type { PdfEngine } from "@/pdf/engine";
-import type { ToolServices } from "@/tools/browser/types";
+import type { ToolServices } from "@/tools/impl/types";
 
 const RuntimeContext = createContext<ToolServices | null>(null);
 
@@ -19,22 +20,25 @@ function loadDefaultFont(): Promise<Uint8Array> {
   return fontPromise;
 }
 
-/** Provides the services every browser tool needs. Pass `engine`/`loadFont` to swap them (tests, previews). */
+/** Provides the services every tool needs. Pass `engine`/`gateway`/`loadFont` to swap them (tests, previews). */
 export function ToolRuntimeProvider({
   dict,
   locale,
   engine,
+  gateway,
   loadFont = loadDefaultFont,
   children,
 }: {
   dict: Dictionary;
   locale: Locale;
   engine?: PdfEngine;
+  gateway?: GatewayClient;
   loadFont?: () => Promise<Uint8Array>;
   children: React.ReactNode;
 }) {
   const [services] = useState<ToolServices>(() => ({
     engine: engine ?? createWorkerEngine(),
+    gateway: gateway ?? createGatewayClient(),
     loadFont,
     dict,
     locale,

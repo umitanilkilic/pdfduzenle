@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { baseName, formatBytes, matchesAccept, outputName } from "./files";
+import { baseName, formatBytes, matchesAccept, outputName, savedPercent } from "./files";
 
 describe("outputName", () => {
   it("adds a suffix and keeps Turkish characters", () => {
@@ -41,5 +41,14 @@ describe("matchesAccept", () => {
     expect(matchesAccept({ name: "a", type: "application/pdf" }, pdf)).toBe(true);
     expect(matchesAccept({ name: "a.png", type: "image/png" }, pdf)).toBe(false);
     expect(matchesAccept({ name: "a.heic", type: "image/heic" }, "image/*")).toBe(true);
+  });
+});
+
+describe("savedPercent", () => {
+  it("reports the reduction", () => {
+    expect(savedPercent(1000, 250)).toBe(75);
+    expect(savedPercent(1000, 1000)).toBeNull();
+    expect(savedPercent(1000, 1200)).toBeNull();
+    expect(savedPercent(0, 0)).toBeNull();
   });
 });

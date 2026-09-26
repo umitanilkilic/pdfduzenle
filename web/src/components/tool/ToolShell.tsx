@@ -2,8 +2,9 @@
 
 import { AlertCircle, Loader2 } from "lucide-react";
 import { useCallback, useState } from "react";
-import { errorMessage } from "@/tools/browser/errors";
-import type { BrowserTool, OutputFile } from "@/tools/browser/types";
+import { errorMessage } from "@/tools/impl/errors";
+import type { JobStage } from "@/api/gateway";
+import type { ToolImpl, OutputFile } from "@/tools/impl/types";
 import { Dropzone } from "./Dropzone";
 import { FileList } from "./FileList";
 import { ResultPanel } from "./ResultPanel";
@@ -12,10 +13,13 @@ import type { NextTool } from "./types";
 import { Button } from "./ui";
 
 type Phase =
-  { kind: "edit" } | { kind: "working" } | { kind: "done"; outputs: OutputFile[] } | { kind: "error"; message: string };
+  | { kind: "edit" }
+  | { kind: "working"; stage: JobStage }
+  | { kind: "done"; outputs: OutputFile[] }
+  | { kind: "error"; message: string };
 
 interface Props<O> {
-  tool: BrowserTool<O>;
+  tool: ToolImpl<O>;
   accept: string;
   multiple: boolean;
   zipName: string;
@@ -43,9 +47,15 @@ export function ToolShell<O>({ tool, accept, multiple, zipName, next }: Props<O>
   }, []);
 
   async function start() {
-    setPhase({ kind: "working" });
+    const invalid = tool.validate?.(options);
+    if (invalid) {
+      setPhase({ kind: "error", message: dict.errors[invalid] });
+      return;
+    }
+    setPhase({ kind: "working", stage: "working" });
     try {
-      const outputs = await tool.run({ files, options }, services);
+      const report = (stage: JobStage) => setPhase({ kind: "working", stage });
+      const outputs = await tool.run({ files, options, report }, services);
       setPhase({ kind: "done", outputs });
     } catch (err) {
       if (process.env.NODE_ENV !== "production") console.error(err);
@@ -97,7 +107,7 @@ export function ToolShell<O>({ tool, accept, multiple, zipName, next }: Props<O>
         )}
         <Button className="h-13 w-full text-base" onClick={start} disabled={working} data-testid="start">
           {working ? <Loader2 className="size-5 animate-spin" aria-hidden /> : null}
-          {working ? dict.process.working : dict.process.start}
+          {phase.kind === "working" ? dict.process[phase.stage] : dict.process.start}
         </Button>
       </aside>
     </div>

@@ -6,7 +6,12 @@ const nextConfig: NextConfig = {
   output: "standalone",
   poweredByHeader: false,
   // Multiple root layouts ((tr) and (en)) need a global 404 page for unmatched URLs.
-  experimental: { globalNotFound: true },
+  experimental: {
+    globalNotFound: true,
+    // Uploads to the gateway pass through the /api rewrite; the default 10 MB limit would truncate them.
+    // Keep in sync with GATEWAY_MAX_UPLOAD_MB (+1 MB for multipart overhead).
+    proxyClientMaxBodySize: "101mb",
+  },
   // Server tools talk to the Go gateway through the same origin.
   async rewrites() {
     return [{ source: "/api/:path*", destination: `${GATEWAY_URL}/api/:path*` }];
