@@ -176,26 +176,26 @@ export const trTools: ToolContentMap = {
     short: "Taranmış PDF ve görsellerdeki yazıları seçilebilir metne çevirin.",
     metaTitle: "PDF OCR – Taranmış PDF'i Metne Çevirme (Türkçe)",
     metaDescription:
-      "Taranmış PDF ve fotoğraflardaki yazıları Türkçe karakter desteğiyle aranabilir, kopyalanabilir metne çevirin. Ultra OCR ile tablo ve düzen korunur.",
+      "Taranmış PDF ve fotoğraflardaki yazıları Türkçe karakter desteğiyle aranabilir, kopyalanabilir metne çevirin. Unlimited-OCR ile tablo ve düzen korunur.",
     h1: "PDF OCR – Metin Tanıma",
     lead: "Taranmış belgeleri aranabilir PDF'e, düz metne veya Word'e dönüştürün. Türkçe karakterler (ç, ğ, ı, ö, ş, ü) tam desteklenir.",
     steps: [
       "Taranmış PDF'i veya görseli seçin.",
-      "Belgenin dilini ve OCR modunu seçin: Hızlı veya Ultra.",
+      "Belgenin dilini ve OCR modunu seçin: Hızlı veya Unlimited-OCR.",
       "“Başlat”a tıklayın; işlem bitince aranabilir PDF'i veya metni indirin.",
     ],
     faq: [
       {
-        q: "Hızlı ve Ultra OCR arasındaki fark nedir?",
-        a: "Hızlı OCR klasik metin tanıma ile aranabilir PDF üretir. Ultra OCR yapay zekâ tabanlı bir görsel dil modeli kullanır; tabloları, başlıkları ve sayfa düzenini daha iyi korur ve Word çıktısı verir.",
+        q: "Hızlı ve Unlimited-OCR arasındaki fark nedir?",
+        a: "Hızlı OCR klasik metin tanıma ile aranabilir PDF üretir. Unlimited-OCR yapay zekâ tabanlı bir görsel dil modeli kullanır; tabloları, başlıkları ve sayfa düzenini daha iyi korur ve Word çıktısı verir.",
       },
       {
         q: "El yazısını tanır mı?",
-        a: "Hızlı OCR basılı metin için tasarlanmıştır. Okunaklı el yazısında Ultra OCR daha iyi sonuç verir ancak hatasız sonuç garanti edilemez.",
+        a: "Hızlı OCR basılı metin için tasarlanmıştır. Okunaklı el yazısında Unlimited-OCR daha iyi sonuç verir ancak hatasız sonuç garanti edilemez.",
       },
       {
         q: "Dosyam güvende mi, nereye gönderiliyor?",
-        a: "Hızlı modda dosyanız yalnızca kendi sunucumuzda işlenir. Ultra modda sayfa görüntüleri, yapay zekâ modelinin çalıştığı GPU sunucusuna şifreli bağlantıyla gönderilir ve işlem sonrası saklanmaz. Kişisel veri içeren belgelerde Hızlı modu seçebilirsiniz. Tüm dosyalar iş bittikten sonra, en geç bir saat içinde silinir.",
+        a: "Hızlı modda dosyanız yalnızca kendi sunucumuzda işlenir. Unlimited-OCR modunda sayfa görüntüleri, yapay zekâ modelinin çalıştığı GPU sunucusuna şifreli bağlantıyla gönderilir ve işlem sonrası saklanmaz. Kişisel veri içeren belgelerde Hızlı modu seçebilirsiniz. Tüm dosyalar iş bittikten sonra, en geç bir saat içinde silinir.",
       },
     ],
     keywords: ["ocr", "metin tanıma", "taranmış", "tarama", "yazıya çevir", "resimden yazı", "aranabilir"],
@@ -284,7 +284,7 @@ export const trTools: ToolContentMap = {
     faq: [
       {
         q: "Taranmış PDF'i Word'e çevirebilir miyim?",
-        a: "Taranmış belgelerde metin görsel olarak durduğu için önce OCR gerekir. Bunun için OCR aracındaki Ultra modu Word çıktısı verir.",
+        a: "Taranmış belgelerde metin görsel olarak durduğu için önce OCR gerekir. Bunun için OCR aracındaki Unlimited-OCR modu Word çıktısı verir.",
       },
       SERVER_FAQ,
     ],

@@ -176,26 +176,26 @@ export const enTools: ToolContentMap = {
     short: "Turn text in scanned PDFs and images into selectable text.",
     metaTitle: "OCR PDF – Convert Scanned PDF to Searchable Text",
     metaDescription:
-      "Turn scanned PDFs and photos into searchable, copyable text. Ultra OCR keeps tables and layout and exports to Word.",
+      "Turn scanned PDFs and photos into searchable, copyable text. Unlimited-OCR keeps tables and layout and exports to Word.",
     h1: "OCR PDF – Text Recognition",
     lead: "Convert scanned documents into searchable PDF, plain text or Word. Supports Turkish, English and more.",
     steps: [
       "Select a scanned PDF or image.",
-      "Choose the document language and OCR mode: Fast or Ultra.",
+      "Choose the document language and OCR mode: Fast or Unlimited-OCR.",
       "Click “Start” and download the searchable PDF or text when done.",
     ],
     faq: [
       {
-        q: "What is the difference between Fast and Ultra OCR?",
-        a: "Fast OCR uses classic text recognition to produce a searchable PDF. Ultra OCR uses an AI vision-language model that better preserves tables, headings and layout, and can export to Word.",
+        q: "What is the difference between Fast and Unlimited-OCR?",
+        a: "Fast OCR uses classic text recognition to produce a searchable PDF. Unlimited-OCR uses an AI vision-language model that better preserves tables, headings and layout, and can export to Word.",
       },
       {
         q: "Does it recognize handwriting?",
-        a: "Fast OCR is designed for printed text. Ultra OCR does better on legible handwriting, but results are not guaranteed to be perfect.",
+        a: "Fast OCR is designed for printed text. Unlimited-OCR does better on legible handwriting, but results are not guaranteed to be perfect.",
       },
       {
         q: "Is my file safe, and where is it sent?",
-        a: "In Fast mode your file is processed only on our own server. In Ultra mode page images are sent over an encrypted connection to the GPU server running the AI model and are not stored after processing. Choose Fast mode for documents with personal data. All files are deleted within an hour after the job.",
+        a: "In Fast mode your file is processed only on our own server. In Unlimited-OCR mode page images are sent over an encrypted connection to the GPU server running the AI model and are not stored after processing. Choose Fast mode for documents with personal data. All files are deleted within an hour after the job.",
       },
     ],
     keywords: ["ocr", "text recognition", "scanned", "scan", "image to text", "searchable"],
@@ -280,7 +280,7 @@ export const enTools: ToolContentMap = {
     faq: [
       {
         q: "Can I convert a scanned PDF to Word?",
-        a: "Scanned documents store text as images, so they need OCR first. The Ultra mode of the OCR tool exports to Word.",
+        a: "Scanned documents store text as images, so they need OCR first. The Unlimited-OCR mode of the OCR tool exports to Word.",
       },
       SERVER_FAQ,
     ],

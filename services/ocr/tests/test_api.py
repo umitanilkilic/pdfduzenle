@@ -23,7 +23,7 @@ def post(client, name="tarama.png", **fields):
 
 
 def test_health(client):
-    assert client.get("/internal/health").json() == {"status": "ok", "ultra": False}
+    assert client.get("/internal/health").json() == {"status": "ok", "unlimited": False}
 
 
 def test_returns_file_and_engine(client):

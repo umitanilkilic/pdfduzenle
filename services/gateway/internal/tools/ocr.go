@@ -18,7 +18,7 @@ type HTTPDoer interface {
 	Do(*http.Request) (*http.Response, error)
 }
 
-// OCR forwards a scan to the internal OCR service (Ultra OCR with Tesseract fallback).
+// OCR forwards a scan to the internal OCR service (Unlimited-OCR with Tesseract fallback).
 type OCR struct {
 	Client  HTTPDoer
 	BaseURL string

@@ -4,12 +4,12 @@ import httpx
 import pytest
 
 from app.config import Settings
-from app.ultra.client import UltraClient, UltraError
+from app.unlimited.client import UnlimitedClient, UnlimitedError
 
 
-def make_client(handler) -> UltraClient:
+def make_client(handler) -> UnlimitedClient:
     http = httpx.Client(transport=httpx.MockTransport(handler))
-    return UltraClient(http, "https://gpu.example", "Unlimited-OCR", api_key="secret")
+    return UnlimitedClient(http, "https://gpu.example", "Unlimited-OCR", api_key="secret")
 
 
 def test_sends_image_and_returns_content():
@@ -43,12 +43,14 @@ def test_sends_image_and_returns_content():
         httpx.Response(200, json={"choices": [{"message": {"content": None}}]}),
     ],
 )
-def test_failures_raise_ultra_error(response):
-    with pytest.raises(UltraError):
+def test_failures_raise_unlimited_error(response):
+    with pytest.raises(UnlimitedError):
         make_client(lambda _: response).recognize(b"x")
 
 
 def test_settings_from_env():
-    s = Settings.from_env({"ULTRA_OCR_BASE_URL": "https://gpu.example/", "ULTRA_OCR_MAX_PAGES": "5"})
-    assert s.ultra_enabled and s.ultra_base_url == "https://gpu.example" and s.ultra_max_pages == 5
-    assert not Settings.from_env({}).ultra_enabled
+    s = Settings.from_env({"UNLIMITED_OCR_BASE_URL": "https://gpu.example/", "UNLIMITED_OCR_MAX_PAGES": "5"})
+    assert (
+        s.unlimited_enabled and s.unlimited_base_url == "https://gpu.example" and s.unlimited_max_pages == 5
+    )
+    assert not Settings.from_env({}).unlimited_enabled

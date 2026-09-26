@@ -292,10 +292,10 @@ export const tr = {
       langTr: "Türkçe",
       langEn: "İngilizce",
       mode: "Mod",
-      modeAuto: "Ultra – yapay zekâ, tablo ve düzeni korur",
+      modeAuto: "Unlimited-OCR – yapay zekâ, tablo ve düzeni korur",
       modeFast: "Hızlı – dosyanız sunucumuzdan çıkmaz",
       autoNote:
-        "Ultra modda sayfalar, yapay zekâ modelinin çalıştığı GPU sunucusuna gönderilir ve saklanmaz. Model o an kullanılamıyorsa belge otomatik olarak Hızlı modla işlenir.",
+        "Unlimited-OCR modunda sayfalar, yapay zekâ modelinin çalıştığı GPU sunucusuna gönderilir ve saklanmaz. Model o an kullanılamıyorsa belge otomatik olarak Hızlı modla işlenir.",
     },
     metadata: {
       output: "bilgiler-guncellendi",

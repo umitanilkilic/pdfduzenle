@@ -45,7 +45,7 @@ def ocr_error(_, err: OcrError) -> JSONResponse:
 
 @app.get("/internal/health")
 def health(settings: Annotated[Settings, Depends(get_settings)]) -> dict[str, object]:
-    return {"status": "ok", "ultra": settings.ultra_enabled}
+    return {"status": "ok", "unlimited": settings.unlimited_enabled}
 
 
 @app.post("/internal/ocr")

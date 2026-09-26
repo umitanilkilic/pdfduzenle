@@ -33,7 +33,7 @@ export default defineConfig({
         OCR_SERVICE_URL: "http://localhost:8000",
       },
     },
-    // OCR runs Tesseract locally here (no ULTRA_OCR_BASE_URL), exercising the fallback path.
+    // OCR runs Tesseract locally here (no UNLIMITED_OCR_BASE_URL), exercising the fallback path.
     {
       command: "uv run uvicorn app.main:app --port 8000",
       cwd: "../services/ocr",

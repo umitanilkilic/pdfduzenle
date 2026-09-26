@@ -294,10 +294,10 @@ export const en: Dictionary = {
       langTr: "Turkish",
       langEn: "English",
       mode: "Mode",
-      modeAuto: "Ultra – AI, keeps tables and layout",
+      modeAuto: "Unlimited-OCR – AI, keeps tables and layout",
       modeFast: "Fast – your file never leaves our server",
       autoNote:
-        "In Ultra mode pages are sent to the GPU server running the AI model and are not stored. If the model is unavailable, the document is processed in Fast mode automatically.",
+        "In Unlimited-OCR mode pages are sent to the GPU server running the AI model and are not stored. If the model is unavailable, the document is processed in Fast mode automatically.",
     },
     metadata: {
       output: "metadata-updated",

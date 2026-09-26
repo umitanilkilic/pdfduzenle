@@ -1,4 +1,4 @@
-"""OCR pipeline: OCRmyPDF with Ultra OCR as the preferred engine and Tesseract as fallback."""
+"""OCR pipeline: OCRmyPDF with Unlimited-OCR as the preferred engine and Tesseract as fallback."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ from ocrmypdf import exceptions as ocr_exc
 
 from .config import Settings
 from .docx import markdown_to_docx
-from .ultra import plugin as ultra_plugin
+from .unlimited import plugin as unlimited_plugin
 
 log = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ LANGUAGES = {"tur", "eng"}
 
 
 class EngineChoice(StrEnum):
-    AUTO = "auto"  # Ultra when configured, Tesseract otherwise or when Ultra fails
+    AUTO = "auto"  # Unlimited-OCR when configured, Tesseract otherwise or when Unlimited-OCR fails
     FAST = "fast"  # Tesseract only; the file never leaves our servers
 
 
@@ -75,7 +75,7 @@ def ocrmypdf_runner(
         output,
         language=languages,
         ocr_engine=engine,
-        plugins=[ultra_plugin.__name__] if engine == ultra_plugin.ENGINE_NAME else [],
+        plugins=[unlimited_plugin.__name__] if engine == unlimited_plugin.ENGINE_NAME else [],
         sidecar=sidecar,
         rotate_pages=engine == "tesseract",
         deskew=engine == "tesseract",
@@ -118,8 +118,8 @@ def run_ocr(
 ) -> OcrResult:
     pages = count_pages(source)
     engines = ["tesseract"]
-    if choice is EngineChoice.AUTO and settings.ultra_enabled and pages <= settings.ultra_max_pages:
-        engines.insert(0, ultra_plugin.ENGINE_NAME)
+    if choice is EngineChoice.AUTO and settings.unlimited_enabled and pages <= settings.unlimited_max_pages:
+        engines.insert(0, unlimited_plugin.ENGINE_NAME)
     if pages > settings.fast_max_pages:
         raise OcrError("tooManyPages", f"{pages} pages")
 

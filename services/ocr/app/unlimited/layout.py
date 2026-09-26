@@ -1,4 +1,4 @@
-"""Turns Ultra OCR blocks into an OCRmyPDF element tree for the invisible text layer.
+"""Turns Unlimited-OCR blocks into an OCRmyPDF element tree for the invisible text layer.
 
 The model gives one box per block, not per word, so lines are spread evenly over the block height and
 words over the line width in proportion to their length. Selection and search then land on the right

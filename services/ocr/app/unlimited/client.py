@@ -9,11 +9,11 @@ import httpx
 PROMPT = "document parsing."
 
 
-class UltraError(Exception):
-    """The Ultra endpoint failed or returned something unusable."""
+class UnlimitedError(Exception):
+    """The Unlimited-OCR endpoint failed or returned something unusable."""
 
 
-class UltraClient:
+class UnlimitedClient:
     def __init__(self, http: httpx.Client, base_url: str, model: str, api_key: str = "") -> None:
         self._http = http
         self._url = f"{base_url}/v1/chat/completions"
@@ -44,7 +44,7 @@ class UltraClient:
             res.raise_for_status()
             content = res.json()["choices"][0]["message"]["content"]
         except (httpx.HTTPError, KeyError, IndexError, TypeError, ValueError) as err:
-            raise UltraError(str(err)) from err
+            raise UnlimitedError(str(err)) from err
         if not isinstance(content, str):
-            raise UltraError("unexpected response content")
+            raise UnlimitedError("unexpected response content")
         return content

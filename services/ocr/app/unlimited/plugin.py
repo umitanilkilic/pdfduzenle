@@ -1,4 +1,4 @@
-"""OCRmyPDF plugin that runs Ultra OCR as the page OCR engine (`ocr_engine="ultra"`).
+"""OCRmyPDF plugin that runs Unlimited-OCR as the page OCR engine (`ocr_engine="unlimited"`).
 
 OCRmyPDF instantiates engines itself (possibly in worker processes), so the plugin reads its settings
 from the environment instead of receiving them from the caller.
@@ -15,24 +15,24 @@ from ocrmypdf.pluginspec import OcrEngine, OrientationConfidence
 from PIL import Image
 
 from ..config import Settings
-from .client import UltraClient
+from .client import UnlimitedClient
 from .layout import page_element
 from .parse import parse_blocks, to_markdown
 
-ENGINE_NAME = "ultra"
+ENGINE_NAME = "unlimited"
 
 
-class UltraOcrEngine(OcrEngine):
+class UnlimitedOcrEngine(OcrEngine):
     @staticmethod
     def version() -> str:
         return "unlimited-ocr"
 
     @staticmethod
     def creator_tag(options) -> str:
-        return "Ultra OCR (Unlimited-OCR)"
+        return "Unlimited-OCR (Unlimited-OCR)"
 
     def __str__(self) -> str:
-        return "Ultra OCR"
+        return "Unlimited-OCR"
 
     @staticmethod
     def languages(options) -> set[str]:
@@ -53,19 +53,21 @@ class UltraOcrEngine(OcrEngine):
         with Image.open(input_file) as img:
             width, height = img.size
             dpi = float((img.info.get("dpi") or (300, 300))[0])
-        with httpx.Client(timeout=settings.ultra_timeout) as http:
-            client = UltraClient(http, settings.ultra_base_url, settings.ultra_model, settings.ultra_api_key)
+        with httpx.Client(timeout=settings.unlimited_timeout) as http:
+            client = UnlimitedClient(
+                http, settings.unlimited_base_url, settings.unlimited_model, settings.unlimited_api_key
+            )
             raw = client.recognize(Path(input_file).read_bytes(), _mime(input_file))
         blocks = parse_blocks(raw, width, height)
         return page_element(blocks, width, height, dpi, page_number), to_markdown(blocks)
 
     @staticmethod
     def generate_hocr(input_file, output_hocr, output_text, options) -> None:
-        raise NotImplementedError("Ultra OCR only implements generate_ocr()")
+        raise NotImplementedError("Unlimited-OCR only implements generate_ocr()")
 
     @staticmethod
     def generate_pdf(input_file, output_pdf, output_text, options) -> None:
-        raise NotImplementedError("Ultra OCR only implements generate_ocr()")
+        raise NotImplementedError("Unlimited-OCR only implements generate_ocr()")
 
 
 def _mime(path: Path) -> str:
@@ -75,5 +77,5 @@ def _mime(path: Path) -> str:
 @hookimpl
 def get_ocr_engine(options):
     if options is not None and getattr(options, "ocr_engine", None) == ENGINE_NAME:
-        return UltraOcrEngine()
+        return UnlimitedOcrEngine()
     return None

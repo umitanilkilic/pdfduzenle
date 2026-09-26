@@ -8,8 +8,8 @@ from ocrmypdf import exceptions as ocr_exc
 from app.config import Settings
 from app.pipeline import EngineChoice, OcrError, OutputFormat, parse_languages, run_ocr
 
-ULTRA = Settings(ultra_base_url="https://gpu.example", ultra_max_pages=2)
-NO_ULTRA = Settings()
+UNLIMITED = Settings(unlimited_base_url="https://gpu.example", unlimited_max_pages=2)
+NO_UNLIMITED = Settings()
 
 
 class FakeRunner:
@@ -35,32 +35,32 @@ def image(tmp_path: Path) -> Path:
     return path
 
 
-def run(image, tmp_path, runner, settings=ULTRA, choice=EngineChoice.AUTO, fmt=OutputFormat.PDF):
+def run(image, tmp_path, runner, settings=UNLIMITED, choice=EngineChoice.AUTO, fmt=OutputFormat.PDF):
     return run_ocr(image, tmp_path, fmt, ["tur"], choice, settings, runner)
 
 
-def test_auto_prefers_ultra(image, tmp_path):
+def test_auto_prefers_unlimited(image, tmp_path):
     runner = FakeRunner()
     result = run(image, tmp_path, runner)
-    assert runner.engines == ["ultra"]
-    assert result.engine == "ultra" and result.data == b"%PDF-ocr"
+    assert runner.engines == ["unlimited"]
+    assert result.engine == "unlimited" and result.data == b"%PDF-ocr"
 
 
-def test_falls_back_to_tesseract_when_ultra_fails(image, tmp_path):
-    runner = FakeRunner(fail={"ultra": RuntimeError("GPU down")})
+def test_falls_back_to_tesseract_when_unlimited_fails(image, tmp_path):
+    runner = FakeRunner(fail={"unlimited": RuntimeError("GPU down")})
     result = run(image, tmp_path, runner)
-    assert runner.engines == ["ultra", "tesseract"]
+    assert runner.engines == ["unlimited", "tesseract"]
     assert result.engine == "tesseract"
 
 
 def test_fast_mode_and_missing_endpoint_use_tesseract_only(image, tmp_path):
-    for settings, choice in [(ULTRA, EngineChoice.FAST), (NO_ULTRA, EngineChoice.AUTO)]:
+    for settings, choice in [(UNLIMITED, EngineChoice.FAST), (NO_UNLIMITED, EngineChoice.AUTO)]:
         runner = FakeRunner()
         run(image, tmp_path, runner, settings, choice)
         assert runner.engines == ["tesseract"]
 
 
-def test_large_documents_skip_ultra(tmp_path, monkeypatch):
+def test_large_documents_skip_unlimited(tmp_path, monkeypatch):
     monkeypatch.setattr("app.pipeline.count_pages", lambda _: 3)
     runner = FakeRunner()
     run(tmp_path / "a.pdf", tmp_path, runner)
@@ -70,7 +70,7 @@ def test_large_documents_skip_ultra(tmp_path, monkeypatch):
 def test_page_limit(tmp_path, monkeypatch):
     monkeypatch.setattr("app.pipeline.count_pages", lambda _: 301)
     with pytest.raises(OcrError) as err:
-        run(tmp_path / "a.pdf", tmp_path, FakeRunner(), NO_ULTRA)
+        run(tmp_path / "a.pdf", tmp_path, FakeRunner(), NO_UNLIMITED)
     assert err.value.code == "tooManyPages"
 
 
@@ -84,15 +84,15 @@ def test_page_limit(tmp_path, monkeypatch):
 )
 def test_errors_map_to_codes(image, tmp_path, exc, code):
     with pytest.raises(OcrError) as err:
-        run(image, tmp_path, FakeRunner(fail={"tesseract": exc}), NO_ULTRA)
+        run(image, tmp_path, FakeRunner(fail={"tesseract": exc}), NO_UNLIMITED)
     assert err.value.code == code
 
 
 def test_encrypted_input_does_not_fall_back(image, tmp_path):
-    runner = FakeRunner(fail={"ultra": ocr_exc.EncryptedPdfError()})
+    runner = FakeRunner(fail={"unlimited": ocr_exc.EncryptedPdfError()})
     with pytest.raises(OcrError):
         run(image, tmp_path, runner)
-    assert runner.engines == ["ultra"]
+    assert runner.engines == ["unlimited"]
 
 
 def test_text_and_docx_outputs(image, tmp_path):

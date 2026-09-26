@@ -1,8 +1,8 @@
 import pytest
 from ocrmypdf.hocrtransform import OcrClass
 
-from app.ultra.layout import page_element
-from app.ultra.parse import Block, Box
+from app.unlimited.layout import page_element
+from app.unlimited.parse import Block, Box
 
 
 def words(el):
