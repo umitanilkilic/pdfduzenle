@@ -1,0 +1,7 @@
+* text=auto eol=lf
+
+# Binary test fixtures and fonts
+*.pdf binary
+*.png binary
+*.ttf binary
+*.woff2 binary

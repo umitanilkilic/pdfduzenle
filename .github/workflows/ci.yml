@@ -1,0 +1,100 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # PDF tools used by the gateway integration tests, the OCR service and the e2e suite.
+  APT_PACKAGES: >-
+    qpdf ghostscript
+    libreoffice-writer-nogui libreoffice-calc-nogui libreoffice-impress-nogui libreoffice-draw-nogui
+    tesseract-ocr tesseract-ocr-tur tesseract-ocr-eng fonts-dejavu-core
+
+jobs:
+  web:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npx prettier --check src e2e
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - run: npm audit --omit=dev
+
+  gateway:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: services/gateway
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: services/gateway/go.mod
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends $APT_PACKAGES
+      - run: test -z "$(gofmt -l .)"
+      - run: go vet ./...
+      - run: go test -race ./...
+      - run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+
+  ocr:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: services/ocr
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends $APT_PACKAGES
+      - run: uv sync --locked
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run pytest
+      - run: uv run --with pip-audit pip-audit
+
+  e2e:
+    runs-on: ubuntu-24.04
+    needs: [web, gateway, ocr]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: services/gateway/go.mod
+      - uses: astral-sh/setup-uv@v7
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends $APT_PACKAGES
+      - run: uv sync --locked
+        working-directory: services/ocr
+      - run: npm ci && npx playwright install --with-deps chromium
+        working-directory: web
+      - run: npm run build && npm run test:e2e
+        working-directory: web
+      - if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-traces
+          path: web/test-results
+          retention-days: 7

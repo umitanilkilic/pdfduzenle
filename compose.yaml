@@ -1,0 +1,74 @@
+# pdfduzenle.tr – web + gateway + ocr.
+#
+# The reverse proxy (on the external `webnet` network) forwards everything to web:3000 and must set
+# X-Forwarded-For; Next.js passes /api/* on to the gateway unchanged.
+#
+# Networks:
+#   backend – internal only, no route to the internet. The gateway lives only here, so even a
+#             compromised LibreOffice/Ghostscript process cannot reach the internet.
+#   egress  – lets the OCR service reach the Unlimited-OCR GPU endpoint.
+services:
+  web:
+    build:
+      context: ./web
+      args:
+        NEXT_PUBLIC_SITE_URL: https://pdfduzenle.tr
+        GATEWAY_URL: http://gateway:8080
+    depends_on: [gateway]
+    ports:
+      # Local access only. Public traffic must come through the reverse proxy: a direct connection
+      # could forge X-Forwarded-For and dodge the rate limit.
+      - "127.0.0.1:3000:3000"
+    networks: [backend, webnet]
+    restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    # Uploads to /api are buffered in Node (up to 101 MB each).
+    mem_limit: 2g
+
+  gateway:
+    build: ./services/gateway
+    environment:
+      GATEWAY_MAX_UPLOAD_MB: "100"
+      GATEWAY_JOB_TTL: 1h
+      GATEWAY_OFFICE_WORKERS: "2"
+      GATEWAY_GS_WORKERS: "2"
+      GATEWAY_OCR_WORKERS: "2"
+      # Next.js does not add itself to X-Forwarded-For, so only the reverse proxy counts.
+      GATEWAY_TRUSTED_PROXY_HOPS: "1"
+      OCR_SERVICE_URL: http://ocr:8000
+    tmpfs:
+      - /tmp:size=4g
+    networks: [backend]
+    restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    # LibreOffice and Ghostscript on hostile documents: cap memory and process count.
+    mem_limit: 4g
+    pids_limit: 512
+
+  ocr:
+    build: ./services/ocr
+    environment:
+      # Unlimited-OCR on a rented GPU (OpenAI-compatible API). Leave empty to use Tesseract only.
+      UNLIMITED_OCR_BASE_URL: ${UNLIMITED_OCR_BASE_URL:-}
+      UNLIMITED_OCR_API_KEY: ${UNLIMITED_OCR_API_KEY:-}
+      UNLIMITED_OCR_MODEL: ${UNLIMITED_OCR_MODEL:-Unlimited-OCR}
+      UNLIMITED_OCR_MAX_PAGES: "50"
+      OCR_MAX_PAGES: "300"
+      OCR_JOBS: "2"
+    tmpfs:
+      - /tmp:size=4g
+    networks: [backend, egress]
+    restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    mem_limit: 4g
+    pids_limit: 512
+
+networks:
+  backend:
+    internal: true
+  egress:
+  webnet:
+    external: true
