@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { drawOrigins, makePdf, pageContent, pageIds, PNG_1X1, testFont } from "../testing";
+import { drawnGlyphOutlines, drawOrigins, makePdf, pageContent, pageIds, PNG_1X1, testFont } from "../testing";
 import { addPageNumbers, addWatermark, placeImage, type PageNumberOptions } from "./stamp";
 
 const font = testFont();
@@ -16,6 +16,18 @@ const numbers: PageNumberOptions = {
 };
 
 describe("addPageNumbers", () => {
+  it("embeds an outline for every visible character, including Turkish ones", async () => {
+    const out = await addPageNumbers(
+      await makePdf(1),
+      { ...numbers, template: "Sayfa {n} / {total} ığüşöçİĞÜŞÖÇ" },
+      font,
+    );
+    const outlines = await drawnGlyphOutlines(out, 0);
+    // "Sayfa 1 / 1 ığüşöçİĞÜŞÖÇ": 24 glyphs, of which the 4 spaces are blank.
+    expect(outlines).toHaveLength(24);
+    expect(outlines.filter((has) => !has)).toHaveLength(4);
+  });
+
   it("numbers every page and keeps the page order", async () => {
     const out = await addPageNumbers(await makePdf(3), numbers, font);
     expect(await pageIds(out)).toEqual([0, 1, 2]);
@@ -46,6 +58,17 @@ describe("addPageNumbers", () => {
 });
 
 describe("addWatermark", () => {
+  it("embeds an outline for every visible character of a text watermark", async () => {
+    const out = await addWatermark(
+      await makePdf(1),
+      { kind: "text", text: "GİZLİDİR ığüşöç", fontSize: 40, color: "#ff0000", opacity: 0.3, angle: 45 },
+      font,
+    );
+    const outlines = await drawnGlyphOutlines(out, 0);
+    expect(outlines).toHaveLength(15);
+    expect(outlines.filter((has) => !has)).toHaveLength(1);
+  });
+
   it("draws Turkish text on every page with the requested opacity", async () => {
     const out = await addWatermark(
       await makePdf(2),

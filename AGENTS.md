@@ -165,6 +165,12 @@ These apply to every change in every service. A change is not done until they ho
   can't block the queue.
 - The CSP (`next.config.ts`) is production-only and allows inline scripts (static pages can't use nonces);
   `e2e/layout.spec.ts` fails on any CSP violation.
+- `@pdf-lib/fontkit`'s font subsetting wrote corrupt glyphs for Inter: page numbers and watermarks were
+  blank in every viewer while text extraction still "saw" them. PDFs therefore embed the whole
+  `public/fonts/Inter-400.ttf`, which is pre-reduced with fonttools (Latin, Turkish, Greek, Cyrillic,
+  punctuation, currency; `pyftsubset <original Inter> --unicodes="U+0020-007E,U+00A0-024F,U+0259,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0300-036F,U+0370-03FF,U+0400-04FF,U+1E00-1EFF,U+2000-206F,U+20A0-20CF,U+2100-214F,U+2190-2199,U+2212,U+FB01-FB02" --no-hinting`).
+  `drawnGlyphOutlines()` (`src/pdf/testing.ts`) checks that drawn text really has outlines; use it for any new
+  text-drawing operation.
 - Unlimited-OCR's output format (`<|det|>` blocks, 0–999 coordinates) is an assumption from the README;
   verify `services/ocr/app/unlimited/parse.py` against the real endpoint before relying on it.
 
