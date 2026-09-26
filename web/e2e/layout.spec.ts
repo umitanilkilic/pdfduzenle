@@ -49,3 +49,25 @@ test("pages run without Content-Security-Policy violations", async ({ page }) =>
   await expect(page.getByText("Hazır!")).toBeVisible();
   expect(violations).toEqual([]);
 });
+
+test("file names are shown as text, never run as HTML", async ({ page }) => {
+  let dialogs = 0;
+  page.on("dialog", async (d) => {
+    dialogs++;
+    await d.dismiss();
+  });
+  const { PDFDocument } = await import("pdf-lib");
+  const doc = await PDFDocument.create();
+  doc.addPage();
+  const name = '<img src=x onerror=alert(1)>"><script>alert(2)</script>.pdf';
+  await page.goto("/pdf-dondur");
+  await page
+    .getByTestId("file-input")
+    .setInputFiles({ name, mimeType: "application/pdf", buffer: Buffer.from(await doc.save()) });
+  await expect(page.getByText("<img src=x onerror=alert(1)>", { exact: false })).toBeVisible();
+  await page.getByTestId("start").click();
+  await page.getByRole("button", { name: "Son işlemler" }).click();
+  await expect(page.getByRole("dialog", { name: "Son işlemler" })).toBeVisible();
+  expect(dialogs).toBe(0);
+  expect(await page.locator("script:not([src])", { hasText: "alert(2)" }).count()).toBe(0);
+});

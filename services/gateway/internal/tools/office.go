@@ -20,8 +20,11 @@ type Office struct {
 }
 
 func (t Office) Process(ctx context.Context, in Input) ([]Output, error) {
-	// A private profile per job lets conversions run in parallel.
-	profile := "file://" + filepath.Join(in.Dir, "lo-profile")
+	// A private, hardened profile per job: conversions run in parallel and cannot fetch URLs or run macros.
+	profile, err := writeOfficeProfile(in.Dir)
+	if err != nil {
+		return nil, err
+	}
 	var outputs []Output
 	for i, f := range in.Files {
 		outDir := filepath.Join(in.Dir, fmt.Sprintf("lo-out-%d", i))

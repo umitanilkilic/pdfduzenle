@@ -98,7 +98,7 @@ func saveFile(part *multipart.Part, dir string, index int, allowed []string) (to
 	reader := bufio.NewReader(part)
 	if ext == ".pdf" {
 		head, _ := reader.Peek(1024)
-		if !bytes.Contains(head, []byte("%PDF-")) {
+		if !looksLikePDF(head) {
 			return tools.File{}, badUpload(http.StatusUnsupportedMediaType, tools.CodeInvalidPDF)
 		}
 	}
@@ -106,6 +106,17 @@ func saveFile(part *multipart.Part, dir string, index int, allowed []string) (to
 		return tools.File{}, classifyReadError(err)
 	}
 	return tools.File{Path: path, Name: name}, nil
+}
+
+// looksLikePDF accepts a PDF header within the first KB (as readers do) but rejects PostScript and EPS
+// dressed up as PDF: Ghostscript would otherwise run them as programs.
+func looksLikePDF(head []byte) bool {
+	i := bytes.Index(head, []byte("%PDF-"))
+	if i < 0 {
+		return false
+	}
+	prefix := head[:i]
+	return !bytes.Contains(prefix, []byte("%!")) && !bytes.HasPrefix(head, []byte{0xC5, 0xD0, 0xD3, 0xC6})
 }
 
 // cleanName keeps only the base name, without control characters, for naming outputs.

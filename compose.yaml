@@ -1,8 +1,12 @@
-# pdfduzenle.tr – new stack (web + gateway + ocr).
-# The reverse proxy on the external `webnet` network should forward
-#   /api/*      → gateway:8080   (uploads go straight to Go, no buffering in Node)
-#   everything  → web:3000
-# Routing only to web:3000 also works: Next rewrites /api/* to the gateway.
+# pdfduzenle.tr – web + gateway + ocr.
+#
+# The reverse proxy (on the external `webnet` network) forwards everything to web:3000 and must set
+# X-Forwarded-For; Next.js passes /api/* on to the gateway unchanged.
+#
+# Networks:
+#   backend – internal only, no route to the internet. The gateway lives only here, so even a
+#             compromised LibreOffice/Ghostscript process cannot reach the internet.
+#   egress  – lets the OCR service reach the Unlimited-OCR GPU endpoint.
 services:
   web:
     build:
@@ -12,12 +16,15 @@ services:
         GATEWAY_URL: http://gateway:8080
     depends_on: [gateway]
     ports:
-      - "3000:3000"
-    networks: [internal, webnet]
+      # Local access only. Public traffic must come through the reverse proxy: a direct connection
+      # could forge X-Forwarded-For and dodge the rate limit.
+      - "127.0.0.1:3000:3000"
+    networks: [backend, webnet]
     restart: unless-stopped
     security_opt: ["no-new-privileges:true"]
     cap_drop: [ALL]
-    mem_limit: 1g
+    # Uploads to /api are buffered in Node (up to 101 MB each).
+    mem_limit: 2g
 
   gateway:
     build: ./services/gateway
@@ -27,13 +34,12 @@ services:
       GATEWAY_OFFICE_WORKERS: "2"
       GATEWAY_GS_WORKERS: "2"
       GATEWAY_OCR_WORKERS: "2"
-      # Proxies that append to X-Forwarded-For before the gateway (used for rate limiting):
-      # 1 when the reverse proxy sends /api straight here, 2 when /api goes through web.
+      # Next.js does not add itself to X-Forwarded-For, so only the reverse proxy counts.
       GATEWAY_TRUSTED_PROXY_HOPS: "1"
       OCR_SERVICE_URL: http://ocr:8000
     tmpfs:
       - /tmp:size=4g
-    networks: [internal, webnet]
+    networks: [backend]
     restart: unless-stopped
     security_opt: ["no-new-privileges:true"]
     cap_drop: [ALL]
@@ -44,7 +50,7 @@ services:
   ocr:
     build: ./services/ocr
     environment:
-      # Unlimited-OCR (Unlimited-OCR on a rented GPU, OpenAI-compatible API). Leave empty to use Tesseract only.
+      # Unlimited-OCR on a rented GPU (OpenAI-compatible API). Leave empty to use Tesseract only.
       UNLIMITED_OCR_BASE_URL: ${UNLIMITED_OCR_BASE_URL:-}
       UNLIMITED_OCR_API_KEY: ${UNLIMITED_OCR_API_KEY:-}
       UNLIMITED_OCR_MODEL: ${UNLIMITED_OCR_MODEL:-Unlimited-OCR}
@@ -53,7 +59,7 @@ services:
       OCR_JOBS: "2"
     tmpfs:
       - /tmp:size=4g
-    networks: [internal]
+    networks: [backend, egress]
     restart: unless-stopped
     security_opt: ["no-new-privileges:true"]
     cap_drop: [ALL]
@@ -61,6 +67,8 @@ services:
     pids_limit: 512
 
 networks:
-  internal:
+  backend:
+    internal: true
+  egress:
   webnet:
     external: true

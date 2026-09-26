@@ -170,6 +170,8 @@ func TestSubmitValidation(t *testing.T) {
 		{"no files", []part{{"level", "", "x"}}, 400, codeNoFiles},
 		{"wrong extension", []part{{"files", "a.exe", "MZ"}}, 415, codeUnsupportedType},
 		{"not a pdf", []part{{"files", "a.pdf", "hello"}}, 415, tools.CodeInvalidPDF},
+		{"postscript posing as pdf", []part{{"files", "a.pdf", "%!PS-Adobe-3.0\n% %PDF-1.7\n(x) show"}}, 415, tools.CodeInvalidPDF},
+		{"binary eps posing as pdf", []part{{"files", "a.pdf", "\xC5\xD0\xD3\xC6 %PDF-1.7"}}, 415, tools.CodeInvalidPDF},
 		{"too many files", []part{{"files", "a.pdf", "%PDF-"}, {"files", "b.pdf", "%PDF-"}, {"files", "c.pdf", "%PDF-"}}, 400, codeTooManyFiles},
 		{"too large", []part{{"files", "a.pdf", "%PDF-" + strings.Repeat("x", 2<<20)}}, 413, codeTooLarge},
 		{"option too long", []part{{"files", "a.pdf", "%PDF-"}, {"x", "", strings.Repeat("y", 2000)}}, 400, codeBadRequest},
@@ -245,6 +247,20 @@ func TestClientIP(t *testing.T) {
 		r.Header.Set("X-Forwarded-For", c.xff)
 		if got := s.clientIP(r); got != c.want {
 			t.Errorf("hops=%d xff=%q: got %q, want %q", c.hops, c.xff, got, c.want)
+		}
+	}
+}
+
+func TestLooksLikePDF(t *testing.T) {
+	for in, want := range map[string]bool{
+		"%PDF-1.7\n":                true,
+		"\n\n  junk %PDF-1.4":       true, // leading garbage is tolerated by readers
+		"%!PS-Adobe-3.0 %PDF-1.7":   false,
+		"hello":                     false,
+		"\xC5\xD0\xD3\xC6 %PDF-1.7": false,
+	} {
+		if got := looksLikePDF([]byte(in)); got != want {
+			t.Errorf("looksLikePDF(%q) = %v, want %v", in, got, want)
 		}
 	}
 }

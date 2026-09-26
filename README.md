@@ -101,18 +101,16 @@ cp .env.example .env        # Unlimited-OCR endpoint bilgilerini doldurun (boş 
 docker compose up -d --build
 ```
 
-`web` ve `gateway` servisleri, reverse proxy'nin bulunduğu harici `webnet` ağına bağlanır. Ağ yoksa
-önce oluşturun: `docker network create webnet`.
+`web` servisi, reverse proxy'nin bulunduğu harici `webnet` ağına bağlanır. Ağ yoksa önce oluşturun:
+`docker network create webnet`. Gateway yalnızca internete çıkışı olmayan iç `backend` ağındadır; OCR
+servisi GPU endpoint'ine ulaşmak için ayrıca `egress` ağına bağlıdır.
 
-**Reverse proxy yönlendirmesi (önerilen)**
+**Reverse proxy yönlendirmesi**
 
-| Yol | Hedef |
-| --- | --- |
-| `/api/*` | `gateway:8080` (büyük yüklemeler Node.js'ten geçmez) |
-| diğer her şey | `web:3000` |
-
-Yalnızca `web:3000`'e yönlendirmek de çalışır (Next.js `/api` isteklerini gateway'e aktarır). Bu durumda
-`GATEWAY_TRUSTED_PROXY_HOPS` değerini `2` yapın.
+Tüm istekleri `web:3000`'e yönlendirin; Next.js `/api/*` isteklerini gateway'e aktarır. Proxy
+`X-Forwarded-For` başlığını mutlaka eklemelidir (nginx: `proxy_set_header X-Forwarded-For
+$proxy_add_x_forwarded_for;`, Traefik ve Caddy varsayılan olarak ekler); rate limit bu başlığa göre
+çalışır. `3000` portu yalnızca `127.0.0.1`'e açıktır, dışarıdan doğrudan erişilemez.
 
 ### Ortam değişkenleri
 
@@ -134,7 +132,7 @@ Yalnızca `web:3000`'e yönlendirmek de çalışır (Next.js `/api` isteklerini 
 | `GATEWAY_MAX_PENDING_JOBS` | `50` | Sırada/çalışan en fazla iş |
 | `GATEWAY_GS_WORKERS` / `GATEWAY_QPDF_WORKERS` / `GATEWAY_OFFICE_WORKERS` / `GATEWAY_OCR_WORKERS` | `2` / `4` / `2` / `2` | Program başına eşzamanlı iş sayısı |
 | `GATEWAY_RATE_PER_MINUTE` / `GATEWAY_RATE_BURST` | `20` / `10` | IP başına iş gönderme sınırı |
-| `GATEWAY_TRUSTED_PROXY_HOPS` | `1` | `X-Forwarded-For` ekleyen güvenilir proxy sayısı (`0`: başlığı yok say) |
+| `GATEWAY_TRUSTED_PROXY_HOPS` | `1` | `X-Forwarded-For` ekleyen güvenilir proxy sayısı; Next.js eklemediği için reverse proxy ile `1` (`0`: başlığı yok say) |
 | `OCR_SERVICE_URL` | `http://ocr:8000` | İç OCR servisi |
 | `GATEWAY_PDFA_DEF` / `GATEWAY_ICC_PROFILE` | Ghostscript paketinden bulunur | PDF/A dönüşümü için `PDFA_def.ps` ve sRGB ICC profili |
 
@@ -155,6 +153,9 @@ Yalnızca `web:3000`'e yönlendirmek de çalışır (Next.js `/api` isteklerini 
 - Tarayıcı araçlarında dosya cihazdan çıkmaz.
 - Sunucu araçlarında dosyalar HTTPS ile gelir, yalnızca o iş için kullanılır, iş sonunda ya da en geç
   `GATEWAY_JOB_TTL` sonra silinir. Dosya adları diskte kullanılmaz, şifreler süreç argümanlarına yazılmaz.
+- Kötü niyetli dosyalara karşı: LibreOffice makroları kapalıdır ve belgelerdeki bağlantıları
+  indiremez (SSRF), PDF diye yüklenen PostScript reddedilir, Ghostscript `-dSAFER` ile çalışır,
+  zaman aşımında tüm alt süreçler öldürülür, gateway konteynerinin internete çıkışı yoktur.
 - OCR'ın **Unlimited-OCR** modunda sayfa görüntüleri GPU sunucusuna gönderilir; **Hızlı** mod
   (Tesseract) dosyayı kendi sunucumuzdan çıkarmaz. Arayüz ve SSS bunu kullanıcıya açıkça söyler.
 - "Son işlemler" yalnızca kullanıcının tarayıcısında tutulur, hiçbir sunucuya gönderilmez.

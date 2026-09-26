@@ -3,9 +3,12 @@ package tools
 import (
 	"bytes"
 	"context"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -160,6 +163,34 @@ func TestIntegrationPDFA(t *testing.T) {
 		if !bytes.Contains(data, []byte(marker)) {
 			t.Errorf("output lacks %s", marker)
 		}
+	}
+}
+
+// A document may reference URLs (images, frames); converting it must not make the server fetch them.
+func TestIntegrationOfficeDoesNotFetchLinkedURLs(t *testing.T) {
+	requireBinary(t, "soffice")
+	var hits atomic.Int32
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		hits.Add(1)
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer srv.Close()
+
+	dir := t.TempDir()
+	path := filepath.Join(dir, "in-0.doc")
+	html := `<html><body><p>Merhaba</p><img src="` + srv.URL + `/ssrf.png"><iframe src="` + srv.URL + `/frame"></iframe></body></html>`
+	if err := os.WriteFile(path, []byte(html), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	out, err := Office{Runner: runner.Exec{}, Target: "pdf"}.Process(ctx(t), Input{Dir: dir, Files: []File{{Path: path, Name: "evil.doc"}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.HasPrefix(readHead(t, out[0].Path, 5), []byte("%PDF-")) {
+		t.Fatal("conversion should still produce a PDF")
+	}
+	if n := hits.Load(); n != 0 {
+		t.Fatalf("LibreOffice made %d request(s) to a URL in the document (SSRF)", n)
 	}
 }
 

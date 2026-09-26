@@ -132,7 +132,14 @@ These apply to every change in every service. A change is not done until they ho
 - `next/font` adds a local "… Fallback" face; `document.fonts.load()` rejects on it, so load only the first
   family name.
 - Rate limiting: take the client IP as the N-th `X-Forwarded-For` entry from the right
-  (`GATEWAY_TRUSTED_PROXY_HOPS`); the left-most entry is client-controlled.
+  (`GATEWAY_TRUSTED_PROXY_HOPS`); the left-most entry is client-controlled. Next.js' `/api` rewrite passes
+  the header through without adding itself (measured), so the value is 1 behind one reverse proxy. Never
+  publish web/gateway ports publicly: a direct client could forge the header.
+- Hostile documents (all verified with real tools here): HTML saved as `.doc` made LibreOffice fetch linked
+  URLs (SSRF) → every job gets a LibreOffice profile with a dead proxy and macros disabled
+  (`tools/office_profile.go`, integration test). PostScript renamed to `.pdf` ran in Ghostscript → uploads
+  must start with a PDF header, `%!`/EPS prefixes are rejected. The gateway container has no internet
+  route (`backend` network is `internal`). Keep these tests when touching conversions.
 - LibreOffice needs the `-nogui` Writer/Calc/Impress/Draw packages, and `soffice` exits 0 even when it fails:
   always check that the output file exists.
 - Never put passwords in process arguments (visible in `ps`); use 0600 files in the job directory.
