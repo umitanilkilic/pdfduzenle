@@ -20,6 +20,7 @@ type Config struct {
 	GhostscriptWorkers int
 	QpdfWorkers        int
 	OfficeWorkers      int
+	OCRWorkers         int
 
 	RateLimitPerMinute int
 	RateLimitBurst     int
@@ -49,6 +50,7 @@ func Load() (Config, error) {
 		{"GATEWAY_GS_WORKERS", "2", &c.GhostscriptWorkers},
 		{"GATEWAY_QPDF_WORKERS", "4", &c.QpdfWorkers},
 		{"GATEWAY_OFFICE_WORKERS", "2", &c.OfficeWorkers},
+		{"GATEWAY_OCR_WORKERS", "2", &c.OCRWorkers},
 		{"GATEWAY_RATE_PER_MINUTE", "20", &c.RateLimitPerMinute},
 		{"GATEWAY_RATE_BURST", "10", &c.RateLimitBurst},
 		{"GATEWAY_TRUSTED_PROXY_HOPS", "1", &c.TrustedProxyHops},

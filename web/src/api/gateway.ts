@@ -22,6 +22,7 @@ export type GatewayErrorCode =
   | "invalidPdf"
   | "invalidOption"
   | "conversionFailed"
+  | "tooManyPages"
   | "notFound"
   | "rateLimited"
   | "busy"
@@ -38,6 +39,7 @@ const KNOWN_CODES = new Set<string>([
   "invalidPdf",
   "invalidOption",
   "conversionFailed",
+  "tooManyPages",
   "notFound",
   "rateLimited",
   "busy",

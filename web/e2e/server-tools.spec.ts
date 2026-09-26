@@ -70,3 +70,20 @@ test("uploads larger than 10 MB pass through the /api rewrite @server", async ({
   const download = await startAndDownload(page);
   expect((await PDFDocument.load(await readFile(await download.path()))).getPageCount()).toBe(2);
 });
+
+test("OCR turns a Turkish scan into a searchable PDF and text @server", async ({ page }) => {
+  const scan = { name: "tarama.png", mimeType: "image/png", buffer: await readFile("e2e/fixtures/turkce-tarama.png") };
+  await page.goto("/pdf-ocr");
+  await page.getByTestId("file-input").setInputFiles(scan);
+  await page.getByText("Düz metin (TXT)").click();
+  const txt = await startAndDownload(page);
+  expect(txt.suggestedFilename()).toBe("tarama-ocr.txt");
+  const text = await readFile(await txt.path(), "utf-8");
+  for (const word of ["Türkçe", "Şirket", "ağacı", "çiçek"]) expect(text).toContain(word);
+
+  await page.getByRole("button", { name: "Baştan başla" }).click();
+  await page.getByTestId("file-input").setInputFiles(scan);
+  await page.getByText("Hızlı – dosyanız sunucumuzdan çıkmaz").click();
+  const pdf = await startAndDownload(page);
+  expect((await PDFDocument.load(await readFile(await pdf.path()))).getPageCount()).toBe(1);
+});

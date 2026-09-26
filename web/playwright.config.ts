@@ -26,7 +26,20 @@ export default defineConfig({
       url: "http://localhost:8080/api/health",
       reuseExistingServer: true,
       timeout: 120_000,
-      env: { GATEWAY_WORK_DIR: "/tmp/pdfduzenle-e2e", GATEWAY_RATE_PER_MINUTE: "600", GATEWAY_RATE_BURST: "100" },
+      env: {
+        GATEWAY_WORK_DIR: "/tmp/pdfduzenle-e2e",
+        GATEWAY_RATE_PER_MINUTE: "600",
+        GATEWAY_RATE_BURST: "100",
+        OCR_SERVICE_URL: "http://localhost:8000",
+      },
+    },
+    // OCR runs Tesseract locally here (no ULTRA_OCR_BASE_URL), exercising the fallback path.
+    {
+      command: "uv run uvicorn app.main:app --port 8000",
+      cwd: "../services/ocr",
+      url: "http://localhost:8000/internal/health",
+      reuseExistingServer: true,
+      timeout: 120_000,
     },
   ],
 });

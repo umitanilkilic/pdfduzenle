@@ -193,7 +193,10 @@ export const enTools: ToolContentMap = {
         q: "Does it recognize handwriting?",
         a: "Fast OCR is designed for printed text. Ultra OCR does better on legible handwriting, but results are not guaranteed to be perfect.",
       },
-      SERVER_FAQ,
+      {
+        q: "Is my file safe, and where is it sent?",
+        a: "In Fast mode your file is processed only on our own server. In Ultra mode page images are sent over an encrypted connection to the GPU server running the AI model and are not stored after processing. Choose Fast mode for documents with personal data. All files are deleted within an hour after the job.",
+      },
     ],
     keywords: ["ocr", "text recognition", "scanned", "scan", "image to text", "searchable"],
   },

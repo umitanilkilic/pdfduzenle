@@ -4,7 +4,9 @@ import { getDictionary } from "@/i18n";
 import { createInlineEngine } from "@/pdf/engine";
 import compress from "./compress";
 import pdfToWord from "./pdf-to-word";
+import ocr from "./ocr";
 import protect, { validateProtect } from "./protect";
+import { extensionFor } from "./server";
 import type { ToolImpl, ToolServices } from "./types";
 
 const DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
@@ -71,6 +73,22 @@ describe("server tools", () => {
     const gw = fakeGateway();
     await run(protect, services(gw.client), [pdf("a.pdf")], { password: "s", confirm: "s", allowCopy: false });
     expect(gw.submitted[0].options).toEqual({ password: "s", allowPrint: "true", allowCopy: "false" });
+  });
+
+  it("ocr forwards mode, format and language and names text output .txt", async () => {
+    const gw = fakeGateway("text/plain; charset=utf-8");
+    const { outputs } = await run(ocr, services(gw.client), [pdf("tarama.pdf")], { output: "txt", engine: "fast" });
+    expect(gw.submitted[0]).toMatchObject({
+      tool: "ocr",
+      options: { output: "txt", engine: "fast", languages: "tur+eng" },
+    });
+    expect(outputs[0].name).toBe("tarama-ocr.txt");
+  });
+
+  it("maps content types to extensions", () => {
+    expect(extensionFor("text/plain; charset=utf-8")).toBe("txt");
+    expect(extensionFor("application/pdf")).toBe("pdf");
+    expect(extensionFor("application/octet-stream")).toBe("pdf");
   });
 
   it("protect validates the password before uploading", () => {

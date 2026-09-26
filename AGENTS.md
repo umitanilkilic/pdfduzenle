@@ -111,6 +111,21 @@ These apply to every change in every service. A change is not done until they ho
   skips when they are missing. Server tools e2e (`web/e2e/server-tools.spec.ts`) start the gateway too.
 - Runtime needs `ghostscript`, `qpdf` and the LibreOffice `-nogui` Writer/Calc/Impress/Draw packages.
 
+## services/ocr conventions
+
+- `POST /internal/ocr` (multipart `file` + `output` pdf|txt|docx, `languages` tur|eng|tur+eng,
+  `engine` auto|fast) returns the file with an `X-OCR-Engine` header; errors are `{"error": code}`.
+  Only the gateway calls it (`ocr` tool, pool `ocr`).
+- Pipeline (`app/pipeline.py`): OCRmyPDF always builds the searchable PDF and sidecar text; DOCX is made
+  from that text (`app/docx.py`). `engine=auto` tries Ultra OCR first when `ULTRA_OCR_BASE_URL` is set and
+  falls back to Tesseract on any Ultra failure; `fast` never sends pages off our servers (KVKK).
+- Ultra OCR is an OCRmyPDF engine plugin (`app/ultra/plugin.py`, `generate_ocr`): `client.py` calls the
+  OpenAI-compatible endpoint, `parse.py` reads `<|det|>kind [x1,y1,x2,y2]<|/det|>` blocks (coordinates
+  assumed 0–999; **verify against the real endpoint**), `layout.py` spreads block text into lines/words.
+  The plugin reads settings from the environment because OCRmyPDF instantiates engines itself.
+- Tests: unit tests with a fake runner/transport; `tests/test_integration.py` runs real Tesseract and Ultra
+  against a local fake OpenAI server (skips without Tesseract).
+
 ## Licensing rules
 
 All code here is our own. Dependencies must be permissive (MIT/Apache/BSD/MPL) or run as a separate

@@ -43,6 +43,7 @@ func run(log *slog.Logger) error {
 			tools.PoolGhostscript: cfg.GhostscriptWorkers,
 			tools.PoolQpdf:        cfg.QpdfWorkers,
 			tools.PoolOffice:      cfg.OfficeWorkers,
+			tools.PoolOCR:         cfg.OCRWorkers,
 		},
 		MaxPending: cfg.MaxPendingJobs,
 		Log:        log,
@@ -55,7 +56,14 @@ func run(log *slog.Logger) error {
 	api := httpapi.New(
 		httpapi.Options{MaxUploadBytes: cfg.MaxUploadMB << 20, TrustedProxyHops: cfg.TrustedProxyHops},
 		log,
-		tools.Specs(runner.Exec{}, cfg.PDFADef, cfg.ICCProfile),
+		tools.Specs(tools.Deps{
+			Runner:     runner.Exec{},
+			PDFADef:    cfg.PDFADef,
+			ICCProfile: cfg.ICCProfile,
+			// Per-request timeouts come from the job context; no client-wide timeout.
+			OCRClient: &http.Client{},
+			OCRURL:    cfg.OCRServiceURL,
+		}),
 		manager,
 		ratelimit.New(cfg.RateLimitPerMinute, cfg.RateLimitBurst, nil),
 	)

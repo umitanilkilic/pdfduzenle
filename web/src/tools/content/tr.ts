@@ -193,7 +193,10 @@ export const trTools: ToolContentMap = {
         q: "El yazısını tanır mı?",
         a: "Hızlı OCR basılı metin için tasarlanmıştır. Okunaklı el yazısında Ultra OCR daha iyi sonuç verir ancak hatasız sonuç garanti edilemez.",
       },
-      SERVER_FAQ,
+      {
+        q: "Dosyam güvende mi, nereye gönderiliyor?",
+        a: "Hızlı modda dosyanız yalnızca kendi sunucumuzda işlenir. Ultra modda sayfa görüntüleri, yapay zekâ modelinin çalıştığı GPU sunucusuna şifreli bağlantıyla gönderilir ve işlem sonrası saklanmaz. Kişisel veri içeren belgelerde Hızlı modu seçebilirsiniz. Tüm dosyalar iş bittikten sonra, en geç bir saat içinde silinir.",
+      },
     ],
     keywords: ["ocr", "metin tanıma", "taranmış", "tarama", "yazıya çevir", "resimden yazı", "aranabilir"],
   },

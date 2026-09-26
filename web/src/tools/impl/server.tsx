@@ -19,7 +19,13 @@ interface ServerToolConfig<O> {
 const EXTENSIONS: Record<string, string> = {
   "application/pdf": "pdf",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
+  "text/plain": "txt",
 };
+
+/** "text/plain; charset=utf-8" → "txt". */
+export function extensionFor(contentType: string): string {
+  return EXTENSIONS[contentType.split(";")[0].trim().toLowerCase()] ?? "pdf";
+}
 
 /** A tool processed by the gateway: upload → wait → download, one output per input file. */
 export function createServerTool<O>(config: ServerToolConfig<O>): ToolImpl<O> {
@@ -34,7 +40,7 @@ export function createServerTool<O>(config: ServerToolConfig<O>): ToolImpl<O> {
       const suffix = config.suffix(services);
       return results.map(({ output, bytes }, i): OutputFile => {
         const source = files[i] ?? files[0];
-        const ext = EXTENSIONS[output.contentType] ?? "pdf";
+        const ext = extensionFor(output.contentType);
         return {
           name: outputName(source.name, suffix, ext, results.length > 1 && files.length === 1 ? i + 1 : undefined),
           bytes,

@@ -6,7 +6,7 @@ import type { ToolImpl } from "./types";
 export type AnyToolImpl = ToolImpl<any>;
 type Loader = () => Promise<{ default: AnyToolImpl }>;
 
-/** Code-split loaders: a tool page only downloads its own tool (and pdf-lib) when used. OCR is added in phase 4. */
+/** Code-split loaders: a tool page only downloads its own tool (and pdf-lib) when used. */
 export const toolImpls: Partial<Record<ToolId, Loader>> = {
   merge: () => import("./merge"),
   split: () => import("./split"),
@@ -30,6 +30,7 @@ export const toolImpls: Partial<Record<ToolId, Loader>> = {
   "excel-to-pdf": () => import("./excel-to-pdf"),
   "powerpoint-to-pdf": () => import("./powerpoint-to-pdf"),
   "pdf-to-word": () => import("./pdf-to-word"),
+  ocr: () => import("./ocr"),
 };
 
 export function hasToolImpl(id: ToolId): boolean {

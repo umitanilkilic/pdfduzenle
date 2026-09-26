@@ -54,6 +54,7 @@ const (
 	CodeInvalidPDF       = "invalidPdf"
 	CodeInvalidOption    = "invalidOption"
 	CodeConversionFailed = "conversionFailed"
+	CodeTooManyPages     = "tooManyPages"
 )
 
 // Error is a failure the user can act on.

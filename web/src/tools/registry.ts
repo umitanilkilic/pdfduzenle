@@ -73,6 +73,7 @@ const IMAGES = "image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp";
 const WORD = ".doc,.docx,.odt,.rtf,.txt";
 const EXCEL = ".xls,.xlsx,.ods,.csv";
 const POWERPOINT = ".ppt,.pptx,.odp";
+const SCANS = "image/jpeg,image/png,image/tiff,.jpg,.jpeg,.png,.tif,.tiff";
 
 export const tools: ToolDefinition[] = [
   // Organize
@@ -163,7 +164,7 @@ export const tools: ToolDefinition[] = [
     category: "optimize",
     runtime: "server",
     icon: "ScanText",
-    accept: `${PDF},${IMAGES}`,
+    accept: `${PDF},${SCANS}`,
     multiple: false,
     next: ["compress", "pdf-to-word"],
   },
