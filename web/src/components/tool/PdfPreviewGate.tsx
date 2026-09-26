@@ -16,14 +16,7 @@ export function PdfPreviewGate({
   const { dict } = useRuntime();
   const state = usePdfDocument(file);
 
-  if (state.status === "loading") {
-    return (
-      <p className="text-muted flex items-center justify-center gap-2 py-16">
-        <Loader2 className="size-5 animate-spin" aria-hidden />
-        {dict.ui.loadingPages}
-      </p>
-    );
-  }
+  if (state.status === "loading") return <LoadingPages />;
   if (state.status === "error") {
     return (
       <p role="alert" className="text-danger flex items-center justify-center gap-2 py-16">
@@ -33,4 +26,14 @@ export function PdfPreviewGate({
     );
   }
   return children(state.preview);
+}
+
+export function LoadingPages() {
+  const { dict } = useRuntime();
+  return (
+    <p className="text-muted flex items-center justify-center gap-2 py-16">
+      <Loader2 className="size-5 animate-spin" aria-hidden />
+      {dict.ui.loadingPages}
+    </p>
+  );
 }

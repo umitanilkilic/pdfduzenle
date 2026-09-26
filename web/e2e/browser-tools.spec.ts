@@ -80,6 +80,11 @@ test("file lists show a preview of each PDF", async ({ page }) => {
   for (const thumb of await thumbs.all()) {
     await expect(thumb).toHaveJSProperty("complete", true);
     expect(await thumb.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
+    // The whole page fits its box (a portrait page is taller than wide, not cropped to a square).
+    const box = (await thumb.boundingBox())!;
+    const frame = (await thumb.locator("..").boundingBox())!;
+    expect(box.height).toBeLessThanOrEqual(frame.height);
+    expect(box.width).toBeLessThan(box.height);
   }
 });
 
@@ -127,4 +132,19 @@ test("JPG to PDF", async ({ page }) => {
   ]);
   const download = await startAndDownload(page);
   expect((await pageIdsOf(download)).length).toBe(2);
+});
+
+test("single-file tools show every page, and fall back to the file row when pdf.js can't open it", async ({ page }) => {
+  await page.goto("/pdf-bol");
+  await page.getByTestId("file-input").setInputFiles(await samplePdf(3, "rapor.pdf"));
+  await expect(page.getByText("rapor.pdf")).toBeVisible();
+  await expect(page.getByTestId("page-grid").getByRole("img")).toHaveCount(3);
+
+  await page.goto("/pdf-sifre-kaldir");
+  await page.getByTestId("file-input").setInputFiles("src/pdf/testdata/encrypted-aes256.pdf");
+  await expect(page.getByText("encrypted-aes256.pdf")).toBeVisible();
+  await expect(page.getByText("Sayfalar yükleniyor…")).toHaveCount(0);
+  await expect(page.getByTestId("page-grid")).toHaveCount(0);
+  // Next.js' route announcer is an empty alert; only real messages count.
+  await expect(page.getByRole("alert").filter({ hasText: /\S/ })).toHaveCount(0);
 });

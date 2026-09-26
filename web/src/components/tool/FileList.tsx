@@ -131,7 +131,7 @@ function Thumb({ file, rotate }: { file: File; rotate: number }) {
           alt=""
           data-testid="file-thumb"
           draggable={false}
-          className="max-h-full max-w-full shadow-sm transition-transform"
+          className="max-h-14 max-w-14 shadow-sm transition-transform"
           style={{ transform: `rotate(${rotate}deg)` }}
         />
       ) : (
