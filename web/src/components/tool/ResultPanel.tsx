@@ -7,6 +7,7 @@ import { downloadBytes, zipOutputs } from "@/lib/download";
 import { format } from "@/i18n";
 import { formatBytes, savedPercent } from "@/lib/files";
 import type { OutputFile } from "@/tools/impl/shared/types";
+import { toolsAcceptingAny } from "@/workspace/compatible";
 import { handoffHref } from "@/workspace/handoff";
 import type { NextTool } from "./types";
 import { useRuntime } from "./runtime";
@@ -28,6 +29,7 @@ export function ResultPanel({
 }) {
   const { dict, locale } = useRuntime();
   const single = outputs.length === 1;
+  const nextTools = toolsAcceptingAny(outputs, next);
   const first = outputs[0];
   const saved = single && first.originalSize ? savedPercent(first.originalSize, first.bytes.byteLength) : null;
 
@@ -82,11 +84,11 @@ export function ResultPanel({
         </ul>
       )}
 
-      {next.length > 0 && (
+      {nextTools.length > 0 && (
         <div className="border-border mt-10 border-t pt-6">
           <p className="text-muted mb-3 text-center text-sm font-semibold">{dict.process.continueWith}</p>
           <ul className="flex flex-wrap justify-center gap-2">
-            {next.map((tool) => (
+            {nextTools.map((tool) => (
               <li key={tool.href}>
                 <Link
                   href={handoffHref(tool.href, savedIds)}

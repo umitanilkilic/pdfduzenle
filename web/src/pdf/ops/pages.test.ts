@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { PdfToolError } from "../errors";
 import { makePdf, pageIds, pageRotations } from "../testing";
@@ -65,5 +67,18 @@ describe("page helpers", () => {
   it("splits into groups", async () => {
     const parts = await splitPdf(await makePdf(5), [[0, 1], [4]]);
     expect(await Promise.all(parts.map(pageIds))).toEqual([[0, 1], [4]]);
+  });
+});
+
+describe("encrypted input", () => {
+  const fixture = (name: string) => new Uint8Array(readFileSync(join(process.cwd(), "src/pdf/testdata", name)));
+
+  it("reports a password-protected PDF as encrypted, not as damaged", async () => {
+    // qpdf's AES-256 output encrypts object streams; pdf-lib then fails with a parse error.
+    await expect(mergePdfs([fixture("encrypted-aes256.pdf")])).rejects.toMatchObject({ code: "encrypted" });
+  });
+
+  it("reports an owner-password-only (restricted) PDF as encrypted", async () => {
+    await expect(rotatePages(fixture("restricted-aes256.pdf"), 90)).rejects.toMatchObject({ code: "encrypted" });
   });
 });

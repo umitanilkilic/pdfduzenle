@@ -6,4 +6,6 @@ export interface NextTool {
   name: string;
   icon: ToolIcon;
   category: ToolCategory;
+  /** The tool's `accept` value, to offer it only for outputs it can open. */
+  accept: string;
 }

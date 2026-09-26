@@ -15,6 +15,14 @@ export function compatibleTools<T extends ToolLink>(
   return tools.filter((t) => t.id !== file.toolId && matchesAccept(file, t.accept));
 }
 
+/** Tools that can take at least one of the given files (e.g. no PDF tools for a .txt result). */
+export function toolsAcceptingAny<T extends { accept: string }>(
+  files: { name: string; type: string }[],
+  tools: T[],
+): T[] {
+  return tools.filter((t) => files.some((f) => matchesAccept(f, t.accept)));
+}
+
 /** "3 dakika önce" / "3 minutes ago". */
 export function timeAgo(then: number, now: number, locale: string): string {
   const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });

@@ -26,7 +26,13 @@ export function ToolWorkspace({ locale, toolId }: { locale: Locale; toolId: Tool
 
   const next: NextTool[] = tool.next.map((id) => {
     const t = getTool(id);
-    return { href: toolPath(locale, t), name: getToolContent(locale, id).name, icon: t.icon, category: t.category };
+    return {
+      href: toolPath(locale, t),
+      name: getToolContent(locale, id).name,
+      icon: t.icon,
+      category: t.category,
+      accept: t.accept,
+    };
   });
 
   return (
