@@ -13,7 +13,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
     <header className="border-border bg-surface/85 sticky top-0 z-40 h-16 border-b backdrop-blur-md">
       <div className="mx-auto flex h-full max-w-6xl items-center gap-2 px-4">
         <Link href={localePath(locale)} aria-label="PDF Düzenle" className="mr-2 shrink-0">
-          <Logo />
+          <Logo compact />
         </Link>
         <nav className="flex flex-1 items-center">
           <ToolsMenu label={dict.nav.allTools} groups={menuGroups(locale)} />

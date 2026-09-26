@@ -5,8 +5,8 @@ import { ImageResponse } from "next/og";
 export const ogSize = { width: 1200, height: 630 };
 
 const fonts = Promise.all([
-  readFile(join(process.cwd(), "assets/fonts/Inter-400.ttf")),
-  readFile(join(process.cwd(), "assets/fonts/Inter-800.ttf")),
+  readFile(join(process.cwd(), "public/fonts/Inter-400.ttf")),
+  readFile(join(process.cwd(), "public/fonts/Inter-800.ttf")),
 ]);
 
 /** Shared Open Graph card: brand bar, big title, subtitle. */

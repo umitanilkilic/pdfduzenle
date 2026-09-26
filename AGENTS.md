@@ -56,6 +56,8 @@ These apply to every change in every service. A change is not done until they ho
 ## Commands
 
 - web: `cd web && npm run dev` · `npm run lint` · `npm run typecheck` · `npm test` · `npm run build` · `npm run format`
+- web e2e: `npm run build && npm run test:e2e` (starts `next start` on port 3100; set `PW_CHROMIUM_PATH` to use a
+  preinstalled Chromium instead of `npx playwright install`)
 - gateway: `cd services/gateway && gofmt -l . && go vet ./... && go test ./...`
 - ocr: `cd services/ocr && uv run pytest && uv run ruff check .`
 - everything: `docker compose up --build`
@@ -76,6 +78,20 @@ These apply to every change in every service. A change is not done until they ho
   (`src/lib/og.tsx`). All pages must stay statically generated.
 - Theme colors are CSS variables in `src/app/globals.css`; dark mode uses `data-theme="dark"` on `<html>`.
 - Browser tools must not upload files. Anything heavy (pdf.js, pdf-lib) is loaded lazily on the tool page.
+
+### Browser tools (`web/src/pdf`, `web/src/tools/browser`, `web/src/components/tool`)
+
+- `src/pdf/ops/*` – pure pdf-lib operations (`Uint8Array` in → out), unit-tested in Node. Errors are
+  `PdfToolError` with a code that maps to `dict.errors.*`. Drawing on rotated pages goes through
+  `src/pdf/geometry.ts` (visual → page coordinates).
+- `src/pdf/engine.ts` – the `PdfEngine` facade. The browser uses `createWorkerEngine()` (Web Worker RPC,
+  `worker.ts`/`client.ts`); tests use `createInlineEngine()`. Inject it via `ToolRuntimeProvider`.
+- `src/pdf/render.ts` – pdf.js for previews and PDF → image. Use the **legacy** build: the modern build
+  needs very new JS APIs (e.g. `Map#getOrInsertComputed`) and breaks in many browsers.
+- A tool is a `BrowserTool<Options>` (`src/tools/browser/types.ts`): `initialOptions`, optional `Main`/`Options`
+  views and a `run()` that receives its services (engine, font, dict). `ToolShell` owns file selection,
+  progress, errors and results. Register new tools in `src/tools/browser/index.ts` (code-split loaders).
+- Text drawn into PDFs uses the embedded Inter font (`public/fonts`) so Turkish characters work.
 
 ## Licensing rules
 

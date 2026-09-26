@@ -9,11 +9,12 @@ export function LogoMark({ className }: { className?: string }) {
   );
 }
 
-export function Logo() {
+/** `compact` hides the wordmark on narrow screens (header). */
+export function Logo({ compact = false }: { compact?: boolean }) {
   return (
     <span className="flex items-center gap-2 text-lg font-bold tracking-tight">
       <LogoMark className="size-8" />
-      <span>
+      <span className={compact ? "hidden sm:inline" : undefined}>
         PDF<span className="text-brand">Düzenle</span>
       </span>
     </span>
