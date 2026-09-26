@@ -23,7 +23,7 @@ export const operations = {
   writeMetadata,
 };
 
-export type Operations = typeof operations;
+type Operations = typeof operations;
 export type OperationName = keyof Operations;
 
 /** Async facade over the operations; implemented by a Web Worker in the browser and inline in tests. */

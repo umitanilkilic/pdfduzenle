@@ -3,7 +3,7 @@ import type { Locale } from "@/i18n/config";
 export type ToolCategory = "organize" | "optimize" | "convertTo" | "convertFrom" | "edit" | "security";
 
 /** Where the work happens: in the visitor's browser or on our backend. */
-export type ToolRuntime = "browser" | "server";
+type ToolRuntime = "browser" | "server";
 
 export type ToolId =
   | "merge"

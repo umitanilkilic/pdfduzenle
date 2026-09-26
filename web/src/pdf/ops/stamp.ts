@@ -112,14 +112,14 @@ interface WatermarkBase {
   angle: number;
 }
 
-export interface TextWatermark extends WatermarkBase {
+interface TextWatermark extends WatermarkBase {
   kind: "text";
   text: string;
   fontSize: number;
   color: string;
 }
 
-export interface ImageWatermark extends WatermarkBase {
+interface ImageWatermark extends WatermarkBase {
   kind: "image";
   image: Uint8Array;
   mime: "image/png" | "image/jpeg";

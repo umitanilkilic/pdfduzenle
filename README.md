@@ -4,10 +4,6 @@ Türkçe öncelikli (TR + EN), ücretsiz ve üyeliksiz online PDF araçları. Ar
 sunucuya yüklemeden doğrudan tarayıcıda çalışır. Sıkıştırma, Office dönüşümleri ve OCR gibi ağır işler
 kendi sunucumuzda yapılır ve dosyalar iş bitince silinir.
 
-> Proje sıfırdan yeniden yazılıyor. Eski Stirling-PDF kodu (`app/`, `frontend/`, `docker/`, Gradle
-> dosyaları) yeni sistem yayına alınana kadar repoda duruyor; yeni geliştirme yalnızca `web/` ve
-> `services/` altında yapılır.
-
 ## Araçlar
 
 **Tarayıcıda çalışanlar (dosya yüklenmez)**
@@ -165,6 +161,6 @@ Yalnızca `web:3000`'e yönlendirmek de çalışır (Next.js `/api` isteklerini 
 
 ## Lisans
 
-Yeni kod (`web/`, `services/`) bu projeye aittir; lisansı henüz belirlenmedi. Kökteki `LICENSE` dosyası
-eski Stirling-PDF koduna aittir ve o kod silindiğinde güncellenecektir. Bağımlılıklar izinli lisanslıdır
+Tüm kod bu projeye aittir; lisansı henüz belirlenmedi (belirlenene kadar tüm hakları saklıdır).
+Bağımlılıklar izinli lisanslıdır
 (MIT/Apache/BSD/MPL); Ghostscript (AGPL) yalnızca ayrı bir komut satırı süreci olarak çalıştırılır.

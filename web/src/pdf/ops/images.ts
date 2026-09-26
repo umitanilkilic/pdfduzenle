@@ -9,8 +9,8 @@ export interface ImageInput {
   mime: string;
 }
 
-export type PageSize = "fit" | "a4" | "letter";
-export type Orientation = "auto" | "portrait" | "landscape";
+type PageSize = "fit" | "a4" | "letter";
+type Orientation = "auto" | "portrait" | "landscape";
 
 export interface ImagesToPdfOptions {
   pageSize: PageSize;

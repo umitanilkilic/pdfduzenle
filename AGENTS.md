@@ -4,10 +4,9 @@ Guidance for AI agents working in this repository.
 
 ## What this is
 
-pdfduzenle.tr – a Turkish-first (TR + EN) online PDF toolkit. It is being rewritten from scratch; the
-old Stirling-PDF fork (`app/`, `frontend/`, `docker/`, Gradle files) stays in the repo only until the new
-stack is live and will then be deleted. **Do not add features to the Stirling code.** Its previous agent
-guide is kept at `docs/STIRLING_AGENTS.md` for reference.
+pdfduzenle.tr – a Turkish-first (TR + EN) online PDF toolkit, written from scratch. (It started as a
+Stirling-PDF fork; none of that code remains. Its history is in git before the "Remove the legacy
+Stirling-PDF code" commit.)
 
 ## Layout
 
@@ -61,6 +60,8 @@ These apply to every change in every service. A change is not done until they ho
 - gateway: `cd services/gateway && gofmt -l . && go vet ./... && go test ./...`
 - ocr: `cd services/ocr && uv run pytest && uv run ruff check .`
 - everything: `docker compose up --build`
+- CI (`.github/workflows/ci.yml`) runs all of the above plus `govulncheck`, `npm audit`, `pip-audit` and the
+  full Playwright suite; Dependabot keeps npm, Go, uv, Docker and Actions dependencies current.
 
 ## web/ conventions
 
@@ -113,7 +114,7 @@ These apply to every change in every service. A change is not done until they ho
 - Review the project structure: new files sit in the right layer and folder (e.g. tool helpers in
   `tools/impl/shared`, pure logic in `lib`/`pdf`/`workspace`, no logic in route files), names are
   consistent, no dead code or leftover debug files, `git status` shows nothing unexpected and no new file is
-  swallowed by the (legacy) root `.gitignore`.
+  swallowed by a `.gitignore`.
 - Update this file when structure, commands or conventions change.
 - Run everything, not only unit tests: `npm run build` then the full Playwright suite (it starts the gateway
   and OCR service); `go test -race ./...`; `uv run pytest`.

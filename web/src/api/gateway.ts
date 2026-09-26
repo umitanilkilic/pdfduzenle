@@ -1,8 +1,8 @@
 /** Client for the Go gateway (`/api/*`), used by server-side tools. */
 
-export type JobState = "queued" | "running" | "done" | "failed";
+type JobState = "queued" | "running" | "done" | "failed";
 
-export interface JobOutput {
+interface JobOutput {
   name: string;
   size: number;
   contentType: string;
