@@ -1,6 +1,10 @@
 import Link from "next/link";
 import type { Locale } from "@/i18n/config";
+import { ConsentSettingsButton } from "@/components/analytics/ConsentSettingsButton";
 import { getDictionary } from "@/i18n";
+import { localePath } from "@/i18n/config";
+import { analyticsEnabled, analyticsIds } from "@/lib/analytics/config";
+import { pagePaths } from "@/lib/pages";
 import { SOURCE_URL } from "@/lib/site";
 import { Logo } from "./Logo";
 import { menuGroups } from "./nav-data";
@@ -55,7 +59,20 @@ export function SiteFooter({ locale }: { locale: Locale }) {
         © {year} pdfduzenle.tr ·{" "}
         <a href={SOURCE_URL} className="hover:text-fg underline-offset-2 hover:underline" rel="noopener">
           {dict.footer.openSource}
-        </a>
+        </a>{" "}
+        ·{" "}
+        <Link
+          href={localePath(locale, pagePaths.privacy[locale])}
+          className="hover:text-fg underline-offset-2 hover:underline"
+        >
+          {dict.footer.privacy}
+        </Link>
+        {analyticsEnabled(analyticsIds) && (
+          <>
+            {" "}
+            · <ConsentSettingsButton label={dict.footer.cookieSettings} />
+          </>
+        )}
       </div>
     </footer>
   );

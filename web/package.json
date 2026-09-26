@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:e2e": "NEXT_PUBLIC_GA_ID=G-E2ETEST000 NEXT_PUBLIC_CLARITY_ID=e2etest000 GOOGLE_SITE_VERIFICATION=e2e-google-token BING_SITE_VERIFICATION=E2EBINGTOKEN next build",
     "start": "next start",
     "lint": "eslint",
     "format": "prettier --write .",

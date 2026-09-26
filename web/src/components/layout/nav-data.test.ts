@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { defaultLocale, locales } from "@/i18n/config";
+import { pagePaths } from "@/lib/pages";
 import { tools } from "@/tools/registry";
 import { menuGroups, pathPairs } from "./nav-data";
 
@@ -16,6 +17,7 @@ describe("navigation data", () => {
     expect(pairs).toContainEqual(expect.objectContaining({ tr: "/", en: "/" }));
     expect(pairs).toContainEqual(expect.objectContaining({ tr: "/pdf-birlestir", en: "/merge-pdf" }));
     for (const pair of pairs) expect(Object.keys(pair).sort()).toEqual([...locales].sort());
-    expect(pairs).toHaveLength(tools.length + 1);
+    expect(pairs).toContainEqual(expect.objectContaining({ tr: "/gizlilik", en: "/privacy" }));
+    expect(pairs).toHaveLength(tools.length + 1 + Object.keys(pagePaths).length);
   });
 });

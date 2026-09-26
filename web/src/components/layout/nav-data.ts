@@ -1,6 +1,7 @@
 import { perLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n";
 import { getAllToolContent } from "@/tools/content";
+import { pagePaths } from "@/lib/pages";
 import { toolPath, toolPaths } from "@/tools/paths";
 import { categoryOrder, tools, toolsInCategory } from "@/tools/registry";
 import type { PathPair } from "./LanguageSwitcher";
@@ -21,5 +22,5 @@ export function menuGroups(locale: Locale): MenuGroup[] {
 }
 
 export function pathPairs(): PathPair[] {
-  return [perLocale(() => "/"), ...tools.map(toolPaths)];
+  return [perLocale(() => "/"), ...Object.values(pagePaths), ...tools.map(toolPaths)];
 }

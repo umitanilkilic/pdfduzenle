@@ -118,6 +118,15 @@ export const en: Dictionary = {
     tagline: "Free and private online PDF tools.",
     tools: "Tools",
     openSource: "Open source under AGPL-3.0",
+    privacy: "Privacy and cookies",
+    cookieSettings: "Cookie settings",
+  },
+  consent: {
+    text: "We use Google Analytics and Microsoft Clarity to improve the site. If you agree, cookies are used for visit statistics. Your files and file names are never sent.",
+    accept: "Accept",
+    reject: "Reject",
+    more: "Details",
+    label: "Cookie consent",
   },
   errors: {
     invalidPdf: "This file is not a valid PDF or it is damaged. Try the Repair PDF tool.",
@@ -312,6 +321,50 @@ export const en: Dictionary = {
       keywords: "Keywords (comma separated)",
       creator: "Creator application",
     },
+  },
+  privacy: {
+    title: "Privacy and cookies",
+    description: "How pdfduzenle.tr handles your files, usage data and cookies.",
+    updated: "Last updated: 26 September 2026",
+    sections: [
+      {
+        heading: "Your files",
+        paragraphs: [
+          "With tools that run in the browser (merge, split, rotate, watermark, sign and more) your file never leaves your device; everything happens in your browser.",
+          "With tools that run on the server (compress, Office conversions, protect, OCR and more) the file is sent to our server over an encrypted connection, used only for that job and deleted when it finishes, within 1 hour at the latest. File names are never used on disk and passwords are not stored.",
+          "In OCR's Unlimited-OCR mode, page images are sent to a GPU server for text recognition. Fast mode never lets the file leave our own server.",
+        ],
+      },
+      {
+        heading: "Recent files",
+        paragraphs: [
+          'Result files are kept in the "Recent files" panel only in your browser (IndexedDB) for 24 hours and are never sent to any server. You can delete them from the panel at any time.',
+        ],
+      },
+      {
+        heading: "Analytics and cookies",
+        paragraphs: [
+          "We use Google Analytics 4 and Microsoft Clarity to improve the site. We don't use advertising cookies and don't share data for advertising.",
+          "If you don't consent, no cookies are used and Microsoft Clarity is not loaded. Google Analytics only receives cookieless, identifier-free measurement signals (Google Consent Mode).",
+          "If you consent, Google Analytics uses cookies (_ga, _ga_*) for visit statistics, and Microsoft Clarity uses cookies (_clck, _clsk) for heatmaps and session recordings. File names and tool fields are masked in Clarity; document previews are not sent.",
+          "Events we measure: which tool is used, the number of files, how long it took, whether it succeeded (error code), downloads and moving on to another tool. File names, file contents or anything you type are never sent.",
+          'You can change your choice at any time with the "Cookie settings" link at the bottom of the page.',
+        ],
+      },
+      {
+        heading: "Other records",
+        paragraphs: [
+          "Your theme and cookie choices are stored in your browser (localStorage).",
+          "To prevent abuse, your IP address is kept briefly in memory for rate limiting only; our server application does not write IP addresses to its logs.",
+        ],
+      },
+      {
+        heading: "Open source and contact",
+        paragraphs: [
+          "The site's full source code is public on GitHub, so you can check how all of the above is done. You can reach us on GitHub with any questions.",
+        ],
+      },
+    ],
   },
   notFound: {
     title: "Page not found",

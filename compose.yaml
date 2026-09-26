@@ -14,6 +14,12 @@ services:
       args:
         NEXT_PUBLIC_SITE_URL: https://pdfduzenle.tr
         GATEWAY_URL: http://gateway:8080
+        # Optional, from .env: analytics IDs and search engine verification tokens (see README).
+        NEXT_PUBLIC_GA_ID: ${NEXT_PUBLIC_GA_ID:-}
+        NEXT_PUBLIC_CLARITY_ID: ${NEXT_PUBLIC_CLARITY_ID:-}
+        GOOGLE_SITE_VERIFICATION: ${GOOGLE_SITE_VERIFICATION:-}
+        BING_SITE_VERIFICATION: ${BING_SITE_VERIFICATION:-}
+        YANDEX_SITE_VERIFICATION: ${YANDEX_SITE_VERIFICATION:-}
     depends_on: [gateway]
     ports:
       # Local access only. Public traffic must come through the reverse proxy: a direct connection

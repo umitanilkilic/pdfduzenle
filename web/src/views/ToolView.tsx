@@ -111,7 +111,8 @@ export function ToolView({ locale, slug }: { locale: Locale; slug: string }) {
           </p>
         </header>
 
-        <section className="mt-10">
+        {/* Clarity (after consent) never records file names or tool fields. */}
+        <section className="mt-10" data-clarity-mask="true">
           <ToolWorkspace locale={locale} toolId={tool.id} />
         </section>
       </div>
