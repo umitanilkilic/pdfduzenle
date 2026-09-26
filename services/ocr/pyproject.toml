@@ -1,0 +1,20 @@
+[project]
+name = "pdfduzenle-ocr"
+version = "0.1.0"
+description = "Internal OCR and PDF-to-Word service for pdfduzenle.tr"
+requires-python = ">=3.13"
+dependencies = [
+  "fastapi",
+  "uvicorn[standard]",
+  "python-multipart",
+]
+
+[dependency-groups]
+dev = ["pytest", "httpx", "ruff"]
+
+[tool.ruff]
+line-length = 110
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

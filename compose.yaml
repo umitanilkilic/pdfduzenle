@@ -1,0 +1,35 @@
+# pdfduzenle.tr – new stack (web + gateway + ocr).
+# The reverse proxy on the external `webnet` network forwards the domain to `web:3000`.
+services:
+  web:
+    build:
+      context: ./web
+      args:
+        NEXT_PUBLIC_SITE_URL: https://pdfduzenle.tr
+        GATEWAY_URL: http://gateway:8080
+    depends_on: [gateway]
+    ports:
+      - "3000:3000"
+    networks: [internal, webnet]
+    restart: unless-stopped
+
+  gateway:
+    build: ./services/gateway
+    environment:
+      GATEWAY_MAX_UPLOAD_MB: "100"
+      GATEWAY_JOB_TTL: 1h
+      OCR_SERVICE_URL: http://ocr:8000
+    tmpfs:
+      - /tmp:size=4g
+    networks: [internal]
+    restart: unless-stopped
+
+  ocr:
+    build: ./services/ocr
+    networks: [internal]
+    restart: unless-stopped
+
+networks:
+  internal:
+  webnet:
+    external: true

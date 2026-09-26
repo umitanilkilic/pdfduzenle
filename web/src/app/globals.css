@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+:root {
+  --bg: oklch(0.99 0.003 260);
+  --surface: oklch(1 0 0);
+  --surface-2: oklch(0.965 0.006 260);
+  --fg: oklch(0.22 0.02 265);
+  --muted: oklch(0.5 0.02 265);
+  --border: oklch(0.91 0.008 260);
+  --brand: oklch(0.58 0.21 27);
+  --brand-hover: oklch(0.52 0.21 27);
+  --brand-soft: oklch(0.96 0.03 27);
+  --brand-fg: oklch(1 0 0);
+  --ok: oklch(0.6 0.15 150);
+  --danger: oklch(0.58 0.22 25);
+
+  --cat-organize: oklch(0.6 0.17 255);
+  --cat-optimize: oklch(0.62 0.16 150);
+  --cat-convertTo: oklch(0.66 0.16 60);
+  --cat-convertFrom: oklch(0.58 0.18 300);
+  --cat-edit: oklch(0.6 0.15 200);
+  --cat-security: oklch(0.55 0.2 20);
+}
+
+[data-theme="dark"] {
+  --bg: oklch(0.17 0.012 265);
+  --surface: oklch(0.21 0.014 265);
+  --surface-2: oklch(0.25 0.016 265);
+  --fg: oklch(0.95 0.005 265);
+  --muted: oklch(0.7 0.015 265);
+  --border: oklch(0.31 0.016 265);
+  --brand: oklch(0.66 0.19 27);
+  --brand-hover: oklch(0.72 0.17 27);
+  --brand-soft: oklch(0.28 0.06 27);
+  --brand-fg: oklch(0.16 0.02 27);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-fg: var(--brand-fg);
+  --color-ok: var(--ok);
+  --color-danger: var(--danger);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+html {
+  color-scheme: light;
+  scroll-behavior: smooth;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+details > summary {
+  list-style: none;
+}
+details > summary::-webkit-details-marker {
+  display: none;
+}
