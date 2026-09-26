@@ -74,6 +74,9 @@ These apply to every change in every service. A change is not done until they ho
   derived from it. Tool copy (titles, meta descriptions, steps, FAQ) is in `src/tools/content/{tr,en}.ts`.
 - UI strings are in `src/i18n/dictionaries/{tr,en}.ts`; `en` is typed against `tr`, so a missing key is a
   type error. Write Turkish copy first.
+- Locales are listed once in `src/i18n/config.ts`; everything per-locale is a `Record<Locale, …>` (build it
+  with `perLocale()`), so adding a locale is data + one route group, and the compiler lists what is missing.
+  Never branch on `"tr"`/`"en"` in code or tests (use `defaultLocale`, `locales`). Steps: README "Adding a language".
 - SEO: every page gets canonical + hreflang (`src/lib/seo.ts`), JSON-LD, and a static Open Graph image
   (`src/lib/og.tsx`). All pages must stay statically generated.
 - Theme colors are CSS variables in `src/app/globals.css`; dark mode uses `data-theme="dark"` on `<html>`.

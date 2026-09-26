@@ -1,12 +1,12 @@
 import type { MetadataRoute } from "next";
-import { htmlLang, localePath, locales } from "@/i18n/config";
+import { defaultLocale, htmlLang, localePath, locales, perLocale, type Locale } from "@/i18n/config";
 import { absoluteUrl } from "@/lib/site";
 import { toolPaths } from "@/tools/paths";
 import { tools } from "@/tools/registry";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const pages: { paths: Record<(typeof locales)[number], string>; priority: number }[] = [
-    { paths: { tr: "/", en: "/" }, priority: 1 },
+  const pages: { paths: Record<Locale, string>; priority: number }[] = [
+    { paths: perLocale(() => "/"), priority: 1 },
     ...tools.map((tool) => ({ paths: toolPaths(tool), priority: 0.8 })),
   ];
 
@@ -15,7 +15,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     return locales.map((locale) => ({
       url: absoluteUrl(localePath(locale, paths[locale])),
       changeFrequency: "monthly" as const,
-      priority: locale === "tr" ? priority : priority - 0.1,
+      priority: locale === defaultLocale ? priority : priority - 0.1,
       alternates: { languages },
     }));
   });

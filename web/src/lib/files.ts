@@ -1,4 +1,4 @@
-import type { Locale } from "@/i18n/config";
+import { htmlLang, type Locale } from "@/i18n/config";
 
 export async function readBytes(file: Blob): Promise<Uint8Array> {
   return new Uint8Array(await file.arrayBuffer());
@@ -31,7 +31,7 @@ export function formatBytes(bytes: number, locale: Locale): string {
     unit++;
   }
   const digits = unit === 0 || value >= 100 ? 0 : 1;
-  return `${value.toLocaleString(locale === "tr" ? "tr-TR" : "en-US", { maximumFractionDigits: digits })} ${units[unit]}`;
+  return `${value.toLocaleString(htmlLang[locale], { maximumFractionDigits: digits })} ${units[unit]}`;
 }
 
 /** Whether a file matches an `accept` attribute value such as "application/pdf,.pdf". */

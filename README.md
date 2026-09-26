@@ -1,88 +1,89 @@
 # PDF Düzenle — pdfduzenle.tr
 
-Türkçe öncelikli (TR + EN), ücretsiz ve üyeliksiz online PDF araçları. Araçların çoğu dosyayı hiçbir
-sunucuya yüklemeden doğrudan tarayıcıda çalışır. Sıkıştırma, Office dönüşümleri ve OCR gibi ağır işler
-kendi sunucumuzda yapılır ve dosyalar iş bitince silinir.
+Free online PDF tools, Turkish first and also in English, with no sign-up. Most tools run entirely in
+the browser, so the file never leaves the device. Heavy jobs (compression, Office conversions, OCR) run on
+our own servers, and their files are deleted when the job is done.
 
-## Araçlar
+## Tools
 
-**Tarayıcıda çalışanlar (dosya yüklenmez)**
+**In the browser (nothing is uploaded)**
 
-| Araç | TR adresi | EN adresi |
+| Tool | Turkish URL | English URL |
 | --- | --- | --- |
-| PDF birleştir | `/pdf-birlestir` | `/en/merge-pdf` |
-| PDF böl | `/pdf-bol` | `/en/split-pdf` |
-| Sayfa sil | `/pdf-sayfa-sil` | `/en/remove-pdf-pages` |
-| Sayfa çıkar | `/pdf-sayfa-cikar` | `/en/extract-pdf-pages` |
-| Sayfaları düzenle (sürükle-bırak, döndür, sil) | `/pdf-sayfa-duzenle` | `/en/organize-pdf` |
-| PDF döndür | `/pdf-dondur` | `/en/rotate-pdf` |
+| Merge PDF | `/pdf-birlestir` | `/en/merge-pdf` |
+| Split PDF | `/pdf-bol` | `/en/split-pdf` |
+| Remove pages | `/pdf-sayfa-sil` | `/en/remove-pdf-pages` |
+| Extract pages | `/pdf-sayfa-cikar` | `/en/extract-pdf-pages` |
+| Organize pages (drag & drop, rotate, delete) | `/pdf-sayfa-duzenle` | `/en/organize-pdf` |
+| Rotate PDF | `/pdf-dondur` | `/en/rotate-pdf` |
 | JPG/PNG → PDF | `/jpg-pdf-cevir` | `/en/jpg-to-pdf` |
 | PDF → JPG/PNG | `/pdf-jpg-cevir` | `/en/pdf-to-jpg` |
-| Sayfa numarası ekle | `/pdf-sayfa-numarasi-ekle` | `/en/add-page-numbers` |
-| Filigran ekle (metin/görsel) | `/pdf-filigran-ekle` | `/en/add-watermark` |
-| PDF kırp | `/pdf-kirp` | `/en/crop-pdf` |
-| PDF imzala (çiz/yaz/yükle) | `/pdf-imzala` | `/en/sign-pdf` |
-| PDF bilgilerini düzenle | `/pdf-bilgilerini-duzenle` | `/en/edit-pdf-metadata` |
+| Add page numbers | `/pdf-sayfa-numarasi-ekle` | `/en/add-page-numbers` |
+| Add watermark (text/image) | `/pdf-filigran-ekle` | `/en/add-watermark` |
+| Crop PDF | `/pdf-kirp` | `/en/crop-pdf` |
+| Sign PDF (draw/type/upload) | `/pdf-imzala` | `/en/sign-pdf` |
+| Edit PDF metadata | `/pdf-bilgilerini-duzenle` | `/en/edit-pdf-metadata` |
 
-**Sunucuda çalışanlar (iş bitince silinir)**
+**On the server (deleted after the job)**
 
-| Araç | TR adresi | Kullanılan araç |
+| Tool | Turkish URL | Powered by |
 | --- | --- | --- |
-| PDF sıkıştır | `/pdf-sikistir` | Ghostscript |
-| PDF onar | `/pdf-onar` | qpdf |
-| PDF şifrele / şifre kaldır | `/pdf-sifrele`, `/pdf-sifre-kaldir` | qpdf (AES-256) |
+| Compress PDF | `/pdf-sikistir` | Ghostscript |
+| Repair PDF | `/pdf-onar` | qpdf |
+| Protect / unlock PDF | `/pdf-sifrele`, `/pdf-sifre-kaldir` | qpdf (AES-256) |
 | Word / Excel / PowerPoint → PDF | `/word-pdf-cevir`, `/excel-pdf-cevir`, `/powerpoint-pdf-cevir` | LibreOffice |
 | PDF → Word | `/pdf-word-cevir` | LibreOffice |
 | PDF → PDF/A | `/pdf-pdfa-cevir` | Ghostscript |
-| OCR (aranabilir PDF, Word, TXT) | `/pdf-ocr` | Unlimited-OCR, yedek olarak Tesseract |
+| OCR (searchable PDF, Word, TXT) | `/pdf-ocr` | Unlimited-OCR, with Tesseract as fallback |
 
-Her sonucun ardından **başka bir araçla devam edilebilir** (dosya yeniden yüklenmez). Sonuçlar ayrıca
-**Son işlemler** panelinde yalnızca kullanıcının cihazında (IndexedDB) 24 saat tutulur.
+Every result can be **passed on to another tool** without uploading it again. Results are also kept in
+the **Recent files** panel for 24 hours, only on the visitor's device (IndexedDB).
 
-## Mimari
+## Architecture
 
 ```
-tarayıcı ──► web (Next.js, :3000) ──/api/*──► gateway (Go, :8080) ──► ocr (Python, :8000, yalnızca iç ağ)
-               │                                  │                        │
-               └─ tarayıcı araçları:              ├─ Ghostscript, qpdf,     ├─ OCRmyPDF + Tesseract
-                  pdf-lib (Web Worker), pdf.js    │  LibreOffice            └─ Unlimited-OCR (GPU endpoint)
-                                                  └─ iş kuyruğu, rate limit
+browser ──► web (Next.js, :3000) ──/api/*──► gateway (Go, :8080) ──► ocr (Python, :8000, internal only)
+              │                                  │                        │
+              └─ browser tools:                  ├─ Ghostscript, qpdf,     ├─ OCRmyPDF + Tesseract
+                 pdf-lib (Web Worker), pdf.js    │  LibreOffice            └─ Unlimited-OCR (GPU endpoint)
+                                                 └─ job queue, rate limit
 ```
 
-| Klasör | Teknoloji | Görev |
+| Folder | Stack | Role |
 | --- | --- | --- |
-| `web/` | Next.js 16, React 19, Tailwind v4, TypeScript | SEO uyumlu site (statik sayfalar, TR/EN, sitemap, JSON-LD, OG görselleri) ve tarayıcı araçları |
-| `services/gateway/` | Go 1.27 (yalnızca standart kütüphane) | Dışa açık `/api`: yükleme, iş kuyruğu, rate limit, CLI araçları |
-| `services/ocr/` | Python 3.14, FastAPI, uv | Yalnızca iç ağda: OCR (Unlimited-OCR, Tesseract'a otomatik geçiş) |
-| `compose.yaml` | Docker Compose | Üç servisin birlikte çalıştırılması |
+| `web/` | Next.js 16, React 19, Tailwind v4, TypeScript | SEO site (static pages, TR/EN, sitemap, JSON-LD, OG images) and the browser tools |
+| `services/gateway/` | Go 1.27 (standard library only) | Public `/api`: uploads, job queue, rate limits, CLI tools |
+| `services/ocr/` | Python 3.14, FastAPI, uv | Internal only: OCR (Unlimited-OCR, falling back to Tesseract) |
+| `compose.yaml` | Docker Compose | Runs the three services together |
 
-Geliştirme kuralları, klasör yapısı ve bilinen tuzaklar [`AGENTS.md`](AGENTS.md) dosyasındadır.
+Engineering rules, folder structure and known pitfalls are in [`AGENTS.md`](AGENTS.md). Read it before
+contributing.
 
-## Yerel geliştirme
+## Local development
 
-Gereksinimler: Node.js 24, Go 1.27, Python 3.14 ve [uv](https://docs.astral.sh/uv/). Sunucu araçlarını
-yerelde denemek için `qpdf`, `ghostscript`, LibreOffice (`libreoffice-writer-nogui`, `-calc-nogui`,
-`-impress-nogui`, `-draw-nogui`) ve `tesseract-ocr` (`tur`, `eng` dil paketleriyle) gerekir.
+Requirements: Node.js 24, Go 1.27, Python 3.14 and [uv](https://docs.astral.sh/uv/). To try the server
+tools locally you also need `qpdf`, `ghostscript`, LibreOffice (`libreoffice-writer-nogui`, `-calc-nogui`,
+`-impress-nogui`, `-draw-nogui`) and `tesseract-ocr` (with the `tur` and `eng` language packs).
 
 ```bash
-# Web (http://localhost:3000). /api istekleri localhost:8080'deki gateway'e gider.
+# Web (http://localhost:3000). /api requests go to the gateway on localhost:8080.
 cd web && npm ci && npm run dev
 
 # Gateway (http://localhost:8080)
 cd services/gateway && go run ./cmd/gateway
 
-# OCR servisi (http://localhost:8000)
+# OCR service (http://localhost:8000)
 cd services/ocr && uv sync && uv run uvicorn app.main:app --port 8000
-# gateway'e bildirmek için: OCR_SERVICE_URL=http://localhost:8000 go run ./cmd/gateway
+# point the gateway at it: OCR_SERVICE_URL=http://localhost:8000 go run ./cmd/gateway
 ```
 
-### Testler ve kontroller
+### Tests and checks
 
 ```bash
 # web
 cd web
 npm run lint && npm run typecheck && npm test      # ESLint, TypeScript, Vitest
-npm run build && npm run test:e2e                  # Playwright; gateway ve OCR servisini kendisi başlatır
+npm run build && npm run test:e2e                  # Playwright; starts the gateway and OCR service itself
 
 # gateway
 cd services/gateway && gofmt -l . && go vet ./... && go test -race ./...
@@ -91,83 +92,117 @@ cd services/gateway && gofmt -l . && go vet ./... && go test -race ./...
 cd services/ocr && uv run ruff check . && uv run pytest
 ```
 
-Playwright için tarayıcı kurulu değilse `npx playwright install chromium` çalıştırın ya da kurulu bir
-Chromium'u `PW_CHROMIUM_PATH` ile gösterin.
+If Playwright has no browser installed, run `npx playwright install chromium` or point `PW_CHROMIUM_PATH`
+at an installed Chromium. CI runs all of the above on every push and pull request.
 
-## Sunucuya kurulum (Docker Compose)
+## Languages
+
+The site is available in **Turkish** (at the root, `/…`) and **English** (under `/en/…`). Every page is
+statically generated per language, with its own translated URL, `hreflang` alternates, sitemap entries and
+Open Graph image.
+
+### Adding a language
+
+New languages are welcome. The type checker guides you: once the locale is registered, every missing
+translation is a compile error. For a German (`de`) translation, for example:
+
+1. **Register the locale** in `web/src/i18n/config.ts`: add `"de"` to `locales`, and fill `htmlLang`
+   (`"de-DE"`), `ogLocale` (`"de_DE"`) and `localeNames` (`"Deutsch"`).
+2. **Translate the UI strings**: copy `web/src/i18n/dictionaries/en.ts` to `de.ts`, translate it and add it
+   to `web/src/i18n/index.ts`.
+3. **Translate the tool pages** (titles, descriptions, steps, FAQ): copy `web/src/tools/content/en.ts` to
+   `de.ts` and add it to `web/src/tools/content/index.ts`.
+4. **Give every tool a German URL**: add a `de` slug to each tool in `web/src/tools/registry.ts`
+   (e.g. `slug: { tr: "pdf-birlestir", en: "merge-pdf", de: "pdf-zusammenfuegen" }`). Slugs are lowercase
+   ASCII words joined by `-`.
+5. **Add the routes**: copy `web/src/app/(en)/` to `web/src/app/(de)/`, rename the inner `en` folder to
+   `de` and replace `"en"` with `"de"` in its five files. (Each language has its own route group so that
+   every page is static and has the right `<html lang>`.)
+6. Run `npm run typecheck`, `npm test` and `npm run build`; the language switcher, sitemap, `hreflang`
+   links and menus pick the new language up automatically.
+
+Current limits: right-to-left scripts (Arabic, Hebrew) are not supported yet, and the bundled Inter font
+covers Latin, Cyrillic and Greek. Other scripts need an extra font for text drawn into PDFs and OG images.
+OCR languages are separate: they depend on the Tesseract language packs installed in the OCR service.
+
+## Deployment (Docker Compose)
 
 ```bash
-cp .env.example .env        # Unlimited-OCR endpoint bilgilerini doldurun (boş bırakılırsa Tesseract kullanılır)
+cp .env.example .env        # fill in the Unlimited-OCR endpoint (leave empty to use Tesseract only)
 docker compose up -d --build
 ```
 
-`web` servisi, reverse proxy'nin bulunduğu harici `webnet` ağına bağlanır. Ağ yoksa önce oluşturun:
-`docker network create webnet`. Gateway yalnızca internete çıkışı olmayan iç `backend` ağındadır; OCR
-servisi GPU endpoint'ine ulaşmak için ayrıca `egress` ağına bağlıdır.
+The `web` service joins the external `webnet` network where the reverse proxy runs. Create it first if it
+doesn't exist: `docker network create webnet`. The gateway lives only on the internal `backend` network
+with no internet access; the OCR service is also on the `egress` network to reach the GPU endpoint.
 
-**Reverse proxy yönlendirmesi**
+**Reverse proxy**
 
-Tüm istekleri `web:3000`'e yönlendirin; Next.js `/api/*` isteklerini gateway'e aktarır. Proxy
-`X-Forwarded-For` başlığını mutlaka eklemelidir (nginx: `proxy_set_header X-Forwarded-For
-$proxy_add_x_forwarded_for;`, Traefik ve Caddy varsayılan olarak ekler); rate limit bu başlığa göre
-çalışır. `3000` portu yalnızca `127.0.0.1`'e açıktır, dışarıdan doğrudan erişilemez.
+Forward all requests to `web:3000`; Next.js passes `/api/*` on to the gateway. The proxy must set
+`X-Forwarded-For` (nginx: `proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;`, Traefik and
+Caddy do it by default): the rate limit is based on it. Port `3000` is bound to `127.0.0.1` only and can't
+be reached directly from outside.
 
-### Ortam değişkenleri
+### Environment variables
 
-**web** (build sırasında okunur)
+**web** (read at build time)
 
-| Değişken | Varsayılan | Açıklama |
+| Variable | Default | Description |
 | --- | --- | --- |
-| `NEXT_PUBLIC_SITE_URL` | `https://pdfduzenle.tr` | Canonical, hreflang, sitemap ve OG adreslerinin kökü |
-| `GATEWAY_URL` | `http://localhost:8080` (compose'da `http://gateway:8080`) | `/api` isteklerinin gideceği gateway |
+| `NEXT_PUBLIC_SITE_URL` | `https://pdfduzenle.tr` | Base of canonical, hreflang, sitemap and OG URLs |
+| `GATEWAY_URL` | `http://localhost:8080` (`http://gateway:8080` in compose) | Where `/api` requests go |
 
 **gateway**
 
-| Değişken | Varsayılan | Açıklama |
+| Variable | Default | Description |
 | --- | --- | --- |
-| `GATEWAY_ADDR` | `:8080` | Dinlenen adres |
-| `GATEWAY_WORK_DIR` | `$TMPDIR/pdfduzenle` | İş dosyalarının geçici klasörü |
-| `GATEWAY_MAX_UPLOAD_MB` | `100` | İstek başına yükleme sınırı (web'deki `proxyClientMaxBodySize` ile uyumlu tutun) |
-| `GATEWAY_JOB_TTL` | `1h` | İşler ve dosyaları en geç bu süre sonra silinir |
-| `GATEWAY_MAX_PENDING_JOBS` | `50` | Sırada/çalışan en fazla iş |
-| `GATEWAY_GS_WORKERS` / `GATEWAY_QPDF_WORKERS` / `GATEWAY_OFFICE_WORKERS` / `GATEWAY_OCR_WORKERS` | `2` / `4` / `2` / `2` | Program başına eşzamanlı iş sayısı |
-| `GATEWAY_RATE_PER_MINUTE` / `GATEWAY_RATE_BURST` | `20` / `10` | IP başına iş gönderme sınırı |
-| `GATEWAY_TRUSTED_PROXY_HOPS` | `1` | `X-Forwarded-For` ekleyen güvenilir proxy sayısı; Next.js eklemediği için reverse proxy ile `1` (`0`: başlığı yok say) |
-| `OCR_SERVICE_URL` | `http://ocr:8000` | İç OCR servisi |
-| `GATEWAY_PDFA_DEF` / `GATEWAY_ICC_PROFILE` | Ghostscript paketinden bulunur | PDF/A dönüşümü için `PDFA_def.ps` ve sRGB ICC profili |
+| `GATEWAY_ADDR` | `:8080` | Listen address |
+| `GATEWAY_WORK_DIR` | `$TMPDIR/pdfduzenle` | Temporary folder for job files |
+| `GATEWAY_MAX_UPLOAD_MB` | `100` | Upload limit per request (keep in sync with `proxyClientMaxBodySize` in web) |
+| `GATEWAY_JOB_TTL` | `1h` | Jobs and their files are deleted after this at the latest |
+| `GATEWAY_MAX_PENDING_JOBS` | `50` | Maximum queued/running jobs |
+| `GATEWAY_GS_WORKERS` / `GATEWAY_QPDF_WORKERS` / `GATEWAY_OFFICE_WORKERS` / `GATEWAY_OCR_WORKERS` | `2` / `4` / `2` / `2` | Concurrent jobs per program |
+| `GATEWAY_RATE_PER_MINUTE` / `GATEWAY_RATE_BURST` | `20` / `10` | Job submissions per IP |
+| `GATEWAY_TRUSTED_PROXY_HOPS` | `1` | Trusted proxies that append to `X-Forwarded-For`; `1` behind one reverse proxy, as Next.js doesn't add itself (`0`: ignore the header) |
+| `OCR_SERVICE_URL` | `http://ocr:8000` | Internal OCR service |
+| `GATEWAY_PDFA_DEF` / `GATEWAY_ICC_PROFILE` | found in the Ghostscript package | `PDFA_def.ps` and the sRGB ICC profile for PDF/A |
 
 **ocr**
 
-| Değişken | Varsayılan | Açıklama |
+| Variable | Default | Description |
 | --- | --- | --- |
-| `UNLIMITED_OCR_BASE_URL` | boş | Unlimited-OCR'ın OpenAI uyumlu endpoint'i (ör. vLLM/SGLang çalışan GPU sunucusu). Boşsa yalnızca Tesseract kullanılır |
-| `UNLIMITED_OCR_API_KEY` | boş | Endpoint anahtarı (`Authorization: Bearer`) |
-| `UNLIMITED_OCR_MODEL` | `Unlimited-OCR` | Endpoint'teki model adı |
-| `UNLIMITED_OCR_TIMEOUT` | `120` | Sayfa başına istek zaman aşımı (sn) |
-| `UNLIMITED_OCR_MAX_PAGES` | `50` | Bu sayfa sayısının üstündeki belgeler doğrudan Tesseract ile işlenir |
-| `OCR_MAX_PAGES` | `300` | OCR için en fazla sayfa |
-| `OCR_JOBS` | `2` | İş başına paralel sayfa sayısı |
+| `UNLIMITED_OCR_BASE_URL` | empty | OpenAI-compatible endpoint of Unlimited-OCR (e.g. a GPU server running vLLM/SGLang). Empty means Tesseract only |
+| `UNLIMITED_OCR_API_KEY` | empty | Endpoint key (`Authorization: Bearer`) |
+| `UNLIMITED_OCR_MODEL` | `Unlimited-OCR` | Model name on the endpoint |
+| `UNLIMITED_OCR_TIMEOUT` | `120` | Request timeout per page (seconds) |
+| `UNLIMITED_OCR_MAX_PAGES` | `50` | Longer documents go straight to Tesseract |
+| `OCR_MAX_PAGES` | `300` | Page limit for OCR |
+| `OCR_JOBS` | `2` | Pages processed in parallel per job |
 
-## Gizlilik (KVKK)
+## Privacy and security
 
-- Tarayıcı araçlarında dosya cihazdan çıkmaz.
-- Sunucu araçlarında dosyalar HTTPS ile gelir, yalnızca o iş için kullanılır, iş sonunda ya da en geç
-  `GATEWAY_JOB_TTL` sonra silinir. Dosya adları diskte kullanılmaz, şifreler süreç argümanlarına yazılmaz.
-- Kötü niyetli dosyalara karşı: LibreOffice makroları kapalıdır ve belgelerdeki bağlantıları
-  indiremez (SSRF), PDF diye yüklenen PostScript reddedilir, Ghostscript `-dSAFER` ile çalışır,
-  zaman aşımında tüm alt süreçler öldürülür, gateway konteynerinin internete çıkışı yoktur.
-- OCR'ın **Unlimited-OCR** modunda sayfa görüntüleri GPU sunucusuna gönderilir; **Hızlı** mod
-  (Tesseract) dosyayı kendi sunucumuzdan çıkarmaz. Arayüz ve SSS bunu kullanıcıya açıkça söyler.
-- "Son işlemler" yalnızca kullanıcının tarayıcısında tutulur, hiçbir sunucuya gönderilmez.
+- Browser tools never upload the file.
+- Server tools receive files over HTTPS, use them only for that job and delete them when it finishes, or
+  after `GATEWAY_JOB_TTL` at the latest. File names are never used on disk and passwords never appear in
+  process arguments.
+- Hostile files: LibreOffice runs with macros disabled and can't fetch links inside documents (SSRF),
+  PostScript uploaded as a PDF is rejected, Ghostscript runs with `-dSAFER`, timeouts kill the whole
+  process tree, and the gateway container has no internet access.
+- In **Unlimited-OCR** mode, page images are sent to the GPU server; **Fast** mode (Tesseract) never lets
+  the file leave our servers. The UI and FAQ say so explicitly (KVKK, Turkey's data protection law).
+- "Recent files" live only in the visitor's browser and are never sent to a server.
 
-## Lisans
+To report a security issue, please open a private advisory on GitHub (Security → Report a vulnerability)
+instead of a public issue.
 
-[GNU AGPL-3.0](LICENSE) (veya sonraki sürümleri). Kodu kullanabilir, değiştirebilir ve dağıtabilirsiniz;
-değiştirilmiş bir sürümü internet üzerinden hizmet olarak sunarsanız kaynak kodunu da kullanıcılarınıza
-aynı lisansla açmanız gerekir. Sitenin alt kısmındaki GitHub bağlantısı bu yükümlülüğü karşılar.
+## License
 
-"PDF Düzenle" adı, pdfduzenle.tr alan adı ve logo lisansa dahil değildir; kendi kopyanızı farklı bir adla
-yayınlayın.
+[GNU AGPL-3.0](LICENSE) or later. You may use, modify and distribute the code; if you offer a modified
+version as a service over a network, you must make its source code available to its users under the same
+license. The GitHub link in the site footer fulfils this for pdfduzenle.tr.
 
-Bağımlılıklar izinli lisanslıdır (MIT/Apache/BSD/MPL); Ghostscript (AGPL) yalnızca ayrı bir komut satırı
-süreci olarak çalıştırılır.
+The "PDF Düzenle" name, the pdfduzenle.tr domain and the logo are not covered by the license; please
+publish your own copy under a different name.
+
+Dependencies are permissively licensed (MIT/Apache/BSD/MPL); Ghostscript (AGPL) only runs as a separate
+command-line process.

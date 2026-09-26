@@ -3,36 +3,32 @@
 import { Languages } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { localePath, type Locale } from "@/i18n/config";
+import { localeNames, localePath, locales, stripLocale, type Locale } from "@/i18n/config";
 
-export interface PathPair {
-  tr: string;
-  en: string;
-}
+/** Unprefixed path of one page in every locale. */
+export type PathPair = Record<Locale, string>;
 
-const labels: Record<Locale, string> = { tr: "Türkçe", en: "English" };
-
-/** Links to the same page in the other language, using slug pairs from the tool registry. */
+/** Links to the same page in the other languages, using slug pairs from the tool registry. */
 export function LanguageSwitcher({ locale, pairs, label }: { locale: Locale; pairs: PathPair[]; label: string }) {
-  const pathname = usePathname() ?? "/";
-  const target: Locale = locale === "tr" ? "en" : "tr";
-
-  // Normalise to the unprefixed path of the current locale.
-  let current = pathname;
-  if (current === `/${locale}` || current.startsWith(`/${locale}/`)) current = current.slice(locale.length + 1) || "/";
-
+  const current = stripLocale(usePathname() ?? "/", locale);
   const pair = pairs.find((p) => p[locale] === current);
-  const href = localePath(target, pair ? pair[target] : "/");
 
   return (
-    <Link
-      href={href}
-      hrefLang={target}
-      aria-label={`${label}: ${labels[target]}`}
-      className="text-muted hover:bg-surface-2 hover:text-fg flex h-10 items-center gap-1.5 rounded-full px-3 text-sm font-medium transition"
-    >
+    <div className="text-muted flex items-center">
       <Languages className="size-4" aria-hidden />
-      {target.toUpperCase()}
-    </Link>
+      {locales
+        .filter((target) => target !== locale)
+        .map((target) => (
+          <Link
+            key={target}
+            href={localePath(target, pair ? pair[target] : "/")}
+            hrefLang={target}
+            aria-label={`${label}: ${localeNames[target]}`}
+            className="hover:bg-surface-2 hover:text-fg flex h-10 items-center rounded-full px-2 text-sm font-medium transition"
+          >
+            {target.toUpperCase()}
+          </Link>
+        ))}
+    </div>
   );
 }
