@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { htmlLang, locales, localePath, ogLocale, type Locale } from "@/i18n/config";
+import { defaultLocale, htmlLang, locales, localePath, ogLocale, type Locale } from "@/i18n/config";
 import { absoluteUrl, SITE_NAME } from "./site";
 
 interface PageMetaInput {
@@ -15,7 +15,7 @@ export function pageMetadata({ locale, title, description, paths }: PageMetaInpu
   const url = absoluteUrl(localePath(locale, paths[locale]));
   const languages: Record<string, string> = {};
   for (const l of locales) languages[htmlLang[l]] = absoluteUrl(localePath(l, paths[l]));
-  languages["x-default"] = absoluteUrl(localePath("tr", paths.tr));
+  languages["x-default"] = absoluteUrl(localePath(defaultLocale, paths[defaultLocale]));
 
   return {
     title,

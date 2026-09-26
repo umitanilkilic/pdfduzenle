@@ -4,7 +4,7 @@ import { Faq, faqJsonLd } from "@/components/Faq";
 import { ToolGrid, type GridItem } from "@/components/home/ToolGrid";
 import { JsonLd } from "@/components/JsonLd";
 import { getDictionary } from "@/i18n";
-import { localePath, type Locale } from "@/i18n/config";
+import { localePath, perLocale, type Locale } from "@/i18n/config";
 import { pageMetadata } from "@/lib/seo";
 import { absoluteUrl, SITE_NAME } from "@/lib/site";
 import { getAllToolContent } from "@/tools/content";
@@ -19,7 +19,7 @@ export function homeMetadata(locale: Locale): Metadata {
     locale,
     title: dict.meta.homeTitle,
     description: dict.meta.homeDescription,
-    paths: { tr: "/", en: "/" },
+    paths: perLocale(() => "/"),
   });
   // The home title already contains the brand; skip the layout template.
   return { ...meta, title: { absolute: dict.meta.homeTitle } };
