@@ -79,6 +79,8 @@ These apply to every change in every service. A change is not done until they ho
   Never branch on `"tr"`/`"en"` in code or tests (use `defaultLocale`, `locales`). Steps: README "Adding a language".
 - SEO: every page gets canonical + hreflang (`src/lib/seo.ts`), JSON-LD, and a static Open Graph image
   (`src/lib/og.tsx`). All pages must stay statically generated.
+- `/llms.txt` (`src/lib/llms.ts`) is generated from the registry, tool content and `pages.ts`, like the sitemap;
+  new tools and pages appear there automatically.
 - Theme colors are CSS variables in `src/app/globals.css`; dark mode uses `data-theme="dark"` on `<html>`.
 - Browser tools must not upload files. Anything heavy (pdf.js, pdf-lib) is loaded lazily on the tool page.
 

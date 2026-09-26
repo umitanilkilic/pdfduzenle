@@ -86,3 +86,12 @@ test("every page links its source code, as the AGPL requires", async ({ page }) 
     await expect(footer.getByRole("link", { name: "GitHub" })).toBeVisible();
   }
 });
+
+test("llms.txt is served as plain text and links the tools", async ({ request }) => {
+  const res = await request.get("/llms.txt");
+  expect(res.status()).toBe(200);
+  expect(res.headers()["content-type"]).toContain("text/plain");
+  const text = await res.text();
+  expect(text).toMatch(/^# PDF Düzenle/);
+  expect(text).toContain("https://pdfduzenle.tr/en/merge-pdf");
+});
