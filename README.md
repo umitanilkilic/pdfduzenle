@@ -17,6 +17,7 @@ our own servers, and their files are deleted when the job is done.
 | Organize pages (drag & drop, rotate, delete) | `/pdf-sayfa-duzenle` | `/en/organize-pdf` |
 | Rotate PDF | `/pdf-dondur` | `/en/rotate-pdf` |
 | JPG/PNG → PDF | `/jpg-pdf-cevir` | `/en/jpg-to-pdf` |
+| Markdown → PDF (headings, lists, tables, code, links; live preview) | `/markdown-pdf-cevir` | `/en/markdown-to-pdf` |
 | PDF → JPG/PNG | `/pdf-jpg-cevir` | `/en/pdf-to-jpg` |
 | Add page numbers | `/pdf-sayfa-numarasi-ekle` | `/en/add-page-numbers` |
 | Add watermark (text/image) | `/pdf-filigran-ekle` | `/en/add-watermark` |
@@ -219,3 +220,4 @@ publish your own copy under a different name.
 
 Dependencies are permissively licensed (MIT/Apache/BSD/MPL); Ghostscript (AGPL) only runs as a separate
 command-line process.
+The bundled fonts (Inter, JetBrains Mono) are under the SIL Open Font License; see `web/public/fonts/LICENSE-*.txt`.

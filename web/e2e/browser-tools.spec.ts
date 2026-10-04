@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import { PDFDocument } from "pdf-lib";
 import { expect, test } from "./base";
 import { pageIdsOf, samplePdf, startAndDownload } from "./helpers";
 
@@ -147,4 +149,29 @@ test("single-file tools show every page, and fall back to the file row when pdf.
   await expect(page.getByTestId("page-grid")).toHaveCount(0);
   // Next.js' route announcer is an empty alert; only real messages count.
   await expect(page.getByRole("alert").filter({ hasText: /\S/ })).toHaveCount(0);
+});
+
+test("Markdown to PDF: live preview follows the options and the result keeps the title @mobile", async ({ page }) => {
+  const markdown = [
+    "# Notlar",
+    "",
+    ...Array.from({ length: 70 }, (_, i) => `${i + 1}. paragraf: **kalın** ve \`kod\`.\n`),
+  ];
+  await page.goto("/markdown-pdf-cevir");
+  await page
+    .getByTestId("file-input")
+    .setInputFiles({ name: "notlar.md", mimeType: "text/markdown", buffer: Buffer.from(markdown.join("\n")) });
+
+  const summary = page.getByTestId("markdown-preview").getByText(/^Önizleme: \d+ sayfa$/);
+  await expect(summary).toBeVisible();
+  const pagesAt = async () => Number((await summary.textContent())?.match(/\d+/)?.[0]);
+  const normal = await pagesAt();
+  await page.getByText("Büyük", { exact: true }).click();
+  await expect.poll(pagesAt).toBeGreaterThan(normal);
+
+  const download = await startAndDownload(page);
+  expect(download.suggestedFilename()).toBe("notlar-markdown.pdf");
+  const doc = await PDFDocument.load(await readFile(await download.path()));
+  expect(doc.getTitle()).toBe("Notlar");
+  expect(doc.getPageCount()).toBeGreaterThan(normal);
 });

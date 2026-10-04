@@ -216,6 +216,32 @@ export const trTools: ToolContentMap = {
     faq: [PRIVATE_FAQ],
     keywords: ["jpg", "png", "resim", "fotoğraf", "görsel", "image to pdf", "resmi pdf yap"],
   },
+  "markdown-to-pdf": {
+    name: "Markdown'dan PDF'e",
+    short: "Markdown (.md) dosyalarını düzenli bir PDF belgesine dönüştürün.",
+    metaTitle: "Markdown'ı PDF'e Çevir – MD'den PDF Oluşturma",
+    metaDescription:
+      "Markdown (.md) dosyalarını başlıklar, listeler, tablolar, kod blokları ve bağlantılarla düzgün bir PDF'e dönüştürün. Ücretsiz; dosyanız yüklenmez, tarayıcınızda işlenir.",
+    h1: "Markdown'ı PDF'e Çevir",
+    lead: "README, not ve dokümantasyon dosyalarınızı başlıkları, tabloları ve kod bloklarıyla okunaklı bir PDF'e dönüştürün.",
+    steps: [
+      "Markdown (.md) dosyanızı seçin.",
+      "Sayfa boyutunu, yazı boyutunu ve kenar boşluğunu seçin; önizleme anında güncellenir.",
+      "“Başlat”a tıklayın ve PDF'i indirin.",
+    ],
+    faq: [
+      PRIVATE_FAQ,
+      {
+        q: "Hangi Markdown özellikleri destekleniyor?",
+        a: "Başlıklar, kalın, italik ve üstü çizili metin, satır içi kod ve kod blokları, numaralı ve madde işaretli listeler, görev listeleri, alıntılar, tablolar, yatay çizgiler ve tıklanabilir bağlantılar (GitHub uyumlu Markdown).",
+      },
+      {
+        q: "Görseller ve HTML ne olur?",
+        a: "Gizliliğiniz için dosyadaki görseller internetten indirilmez; yerlerine alternatif metinleri yazılır. Markdown içindeki ham HTML etiketleri işlenmez. Emojiler PDF'e eklenmez.",
+      },
+    ],
+    keywords: ["markdown", "md", "readme", "md to pdf", "markdown pdf", "dokümantasyon"],
+  },
   "word-to-pdf": {
     name: "Word'den PDF'e",
     short: "DOC ve DOCX belgelerini PDF'e dönüştürün.",

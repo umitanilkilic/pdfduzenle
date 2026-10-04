@@ -3,6 +3,7 @@ import type { GatewayClient, JobStage } from "@/api/gateway";
 import type { Dictionary } from "@/i18n";
 import type { Locale } from "@/i18n/config";
 import type { PdfEngine } from "@/pdf/engine";
+import type { FontFace } from "@/pdf/fonts";
 
 export interface OutputFile {
   name: string;
@@ -17,8 +18,8 @@ export type ErrorKey = keyof Dictionary["errors"];
 export interface ToolServices {
   engine: PdfEngine;
   gateway: GatewayClient;
-  /** TrueType font with Turkish glyphs for text drawn into PDFs. */
-  loadFont(): Promise<Uint8Array>;
+  /** TrueType font with Turkish glyphs for text drawn into PDFs (Inter regular by default). */
+  loadFont(face?: FontFace): Promise<Uint8Array>;
   dict: Dictionary;
   locale: Locale;
 }

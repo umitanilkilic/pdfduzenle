@@ -1,14 +1,14 @@
 "use client";
 
 import { Caveat } from "next/font/google";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useCallback, useEffect, useRef } from "react";
 import { PageImage } from "@/components/tool/PageImage";
+import { PagePager } from "@/components/tool/PagePager";
 import { PdfPreviewGate } from "@/components/tool/PdfPreviewGate";
 import { useRuntime } from "@/components/tool/runtime";
 import { SignaturePad, trimmed } from "@/components/tool/SignaturePad";
 import type { PdfPreview } from "@/components/tool/usePdfDocument";
-import { Checkbox, Choice, Field, IconButton, TextInput } from "@/components/tool/ui";
+import { Checkbox, Choice, Field, TextInput } from "@/components/tool/ui";
 import { format } from "@/i18n";
 import { readBytes } from "@/lib/files";
 import { PdfToolError } from "@/pdf/errors";
@@ -248,23 +248,7 @@ function Placer({
           )}
         </div>
       </PageImage>
-      {preview.doc.pageCount > 1 && (
-        <div className="mt-3 flex items-center justify-center gap-3 text-sm">
-          <IconButton label={dict.ui.previousPage} disabled={page === 0} onClick={() => setOptions({ page: page - 1 })}>
-            <ChevronLeft className="size-5" aria-hidden />
-          </IconButton>
-          <span className="tabular-nums">
-            {page + 1} / {preview.doc.pageCount}
-          </span>
-          <IconButton
-            label={dict.ui.nextPage}
-            disabled={page >= preview.doc.pageCount - 1}
-            onClick={() => setOptions({ page: page + 1 })}
-          >
-            <ChevronRight className="size-5" aria-hidden />
-          </IconButton>
-        </div>
-      )}
+      <PagePager page={page} pageCount={preview.doc.pageCount} onChange={(next) => setOptions({ page: next })} />
     </div>
   );
 }

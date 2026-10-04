@@ -2,9 +2,11 @@ import { describe, expect, it } from "vitest";
 import { createGatewayClient } from "@/api/gateway";
 import { getDictionary } from "@/i18n";
 import { createInlineEngine } from "@/pdf/engine";
+import { PDFDocument } from "pdf-lib";
 import { makePdf, pageIds, pageRotations, testFont } from "@/pdf/testing";
 import crop from "./crop";
 import extractPages from "./extract-pages";
+import markdownToPdf from "./markdown-to-pdf";
 import merge from "./merge";
 import metadata from "./metadata";
 import organize from "./organize";
@@ -20,7 +22,7 @@ const services: ToolServices = {
   gateway: createGatewayClient(() => {
     throw new Error("unexpected network call");
   }),
-  loadFont: async () => testFont(),
+  loadFont: async (face) => testFont(face),
   dict: getDictionary("tr"),
   locale: "tr",
 };
@@ -101,5 +103,16 @@ describe("browser tools", () => {
   it("crop: treats invalid margins as zero", async () => {
     const [out] = await run(crop, [await pdfFile(1)], { top: Number.NaN, right: -5, bottom: 0, left: 0 });
     expect(await pageIds(out.bytes)).toEqual([0]);
+  });
+
+  it("markdown to PDF: names the output after the file and refuses empty or oversized files", async () => {
+    const md = (text: string, name = "notlar.md") => new File([text], name, { type: "text/markdown" });
+    const [out] = await run(markdownToPdf, [md("# Notlar\n\n- bir\n- iki")]);
+    expect(out.name).toBe("notlar-markdown.pdf");
+    expect((await PDFDocument.load(out.bytes)).getTitle()).toBe("Notlar");
+    await expect(run(markdownToPdf, [md("")])).rejects.toMatchObject({ code: "emptyDocument" });
+    const huge = md("a");
+    Object.defineProperty(huge, "size", { value: 5 * 1024 * 1024 });
+    await expect(run(markdownToPdf, [huge])).rejects.toMatchObject({ code: "tooManyPages" });
   });
 });

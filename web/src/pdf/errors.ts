@@ -8,7 +8,9 @@ export type PdfErrorCode =
   | "allPagesRemoved"
   | "unsupportedImage"
   | "noFiles"
-  | "cropTooLarge";
+  | "cropTooLarge"
+  | "emptyDocument"
+  | "tooManyPages";
 
 export class PdfToolError extends Error {
   constructor(

@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import fontkit from "@pdf-lib/fontkit";
+import { FONT_FILES, type FontFace } from "./fonts";
 import { PDFArray, PDFDict, PDFDocument, PDFName, PDFRawStream, decodePDFRawStream, degrees } from "pdf-lib";
 
 /**
@@ -27,8 +28,8 @@ export async function pageRotations(bytes: Uint8Array): Promise<number[]> {
   return doc.getPages().map((p) => p.getRotation().angle);
 }
 
-export function testFont(): Uint8Array {
-  return readFileSync(join(process.cwd(), "public/fonts/Inter-400.ttf"));
+export function testFont(face: FontFace = "regular"): Uint8Array {
+  return readFileSync(join(process.cwd(), "public/fonts", FONT_FILES[face]));
 }
 
 /** A valid 1×1 PNG. */

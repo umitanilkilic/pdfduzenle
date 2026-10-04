@@ -105,7 +105,13 @@ These apply to every change in every service. A change is not done until they ho
 - Server tools use `createServerTool()` (`src/tools/impl/shared/server.tsx`): upload → poll → download → delete via
   the `GatewayClient` (`src/api/gateway.ts`). Gateway error codes map to `dict.errors.*` like `PdfToolError`.
 - `next.config.ts` raises `proxyClientMaxBodySize` so uploads through the `/api` rewrite are not cut at 10 MB.
-- Text drawn into PDFs uses the embedded Inter font (`public/fonts`) so Turkish characters work.
+- Text drawn into PDFs uses the embedded fonts in `public/fonts` (Inter regular/bold/italic, JetBrains Mono; OFL,
+  licenses next to them) so Turkish characters work. `src/pdf/fonts.ts` maps faces to files; tools get them with
+  `loadFont(face)`. Always embed through `embedFont()` (`src/pdf/embed.ts`).
+- Markdown → PDF: `src/pdf/markdown/parse.ts` (marked → blocks; raw HTML dropped, images become alt text, only
+  http(s)/mailto links) → `layout.ts` (pure page layout into draw ops, measured through a `Metrics` interface) →
+  `ops/markdown.ts` (fontkit metrics, embeds only the faces used, link annotations). Main-thread code must not
+  import `marked` or `src/pdf/markdown/*` (ESLint).
 - `src/tools/impl/` holds one file per tool (named by tool id); helpers shared by several tools live in
   `src/tools/impl/shared/`. Keep that split when adding tools.
 
@@ -186,7 +192,10 @@ These apply to every change in every service. A change is not done until they ho
   `public/fonts/Inter-400.ttf`, which is pre-reduced with fonttools (Latin, Turkish, Greek, Cyrillic,
   punctuation, currency; `pyftsubset <original Inter> --unicodes="U+0020-007E,U+00A0-024F,U+0259,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0300-036F,U+0370-03FF,U+0400-04FF,U+1E00-1EFF,U+2000-206F,U+20A0-20CF,U+2100-214F,U+2190-2199,U+2212,U+FB01-FB02" --no-hinting`).
   `drawnGlyphOutlines()` (`src/pdf/testing.ts`) checks that drawn text really has outlines; use it for any new
-  text-drawing operation.
+  text-drawing operation. New faces are reduced the same way.
+- pdf-lib writes PDF widths only for glyphs reachable from the font's character map, but encodes text after
+  OpenType substitutions (Inter's case/contextual alternates): "(GPU)" rendered as "( GPU)". `embedFont()` and
+  the Markdown metrics turn substitutions off (`TEXT_FEATURES`); `src/pdf/embed.test.ts` guards it.
 - Unlimited-OCR's output format (`<|det|>` blocks, 0–999 coordinates) is an assumption from the README;
   verify `services/ocr/app/unlimited/parse.py` against the real endpoint before relying on it.
 
