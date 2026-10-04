@@ -55,6 +55,14 @@ export function createFontMetrics(fonts: MarkdownFonts): Metrics {
   };
 }
 
+/** SVG path of a w×h rectangle with corner radius r, origin top-left. */
+export function roundedRectPath(w: number, h: number, r: number): string {
+  return [
+    `M ${r} 0 H ${w - r} Q ${w} 0 ${w} ${r} V ${h - r} Q ${w} ${h} ${w - r} ${h}`,
+    `H ${r} Q 0 ${h} 0 ${h - r} V ${r} Q 0 0 ${r} 0 Z`,
+  ].join(" ");
+}
+
 /** Typesets GitHub-flavoured Markdown into a PDF with the embedded Inter/JetBrains Mono fonts. */
 export async function markdownToPdf(
   markdown: string,
@@ -90,9 +98,23 @@ export async function markdownToPdf(
           color: hexToRgb(op.color),
         });
         break;
-      case "rect":
-        page.drawRectangle({ x: op.x, y: op.y, width: op.width, height: op.height, color: hexToRgb(op.color) });
+      case "rect": {
+        const fill = op.color ? { color: hexToRgb(op.color) } : {};
+        const stroke = op.border ? { borderColor: hexToRgb(op.border.color), borderWidth: op.border.width } : {};
+        const radius = Math.min(op.radius ?? 0, op.width / 2, op.height / 2);
+        if (radius > 0) {
+          // drawSvgPath measures y downwards from its origin, here the top-left corner.
+          page.drawSvgPath(roundedRectPath(op.width, op.height, radius), {
+            x: op.x,
+            y: op.y + op.height,
+            ...fill,
+            ...stroke,
+          });
+        } else {
+          page.drawRectangle({ x: op.x, y: op.y, width: op.width, height: op.height, ...fill, ...stroke });
+        }
         break;
+      }
       case "line":
         page.drawLine({
           start: { x: op.x1, y: op.y1 },

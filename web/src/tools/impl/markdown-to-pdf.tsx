@@ -55,7 +55,10 @@ function Main({ files: [file], options }: ToolViewProps<MarkdownToPdfOptions>) {
             options: current,
             pdf: new File([bytes as BlobPart], "preview.pdf", { type: "application/pdf" }),
           }),
-        (error: unknown) => !cancelled && setPreview({ source: file, options: current, error }),
+        (error: unknown) => {
+          if (process.env.NODE_ENV !== "production") console.error(error);
+          if (!cancelled) setPreview({ source: file, options: current, error });
+        },
       );
     }, 250);
     return () => {

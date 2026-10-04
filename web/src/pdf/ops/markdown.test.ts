@@ -3,7 +3,13 @@ import { describe, expect, it } from "vitest";
 import { PdfToolError } from "../errors";
 import { FONT_FILES, type FontFace } from "../fonts";
 import { drawnGlyphOutlines, testFont } from "../testing";
-import { createFontMetrics, markdownToPdf, type MarkdownFonts, type MarkdownPdfOptions } from "./markdown";
+import {
+  createFontMetrics,
+  markdownToPdf,
+  roundedRectPath,
+  type MarkdownFonts,
+  type MarkdownPdfOptions,
+} from "./markdown";
 
 const fonts = Object.fromEntries(
   (Object.keys(FONT_FILES) as FontFace[]).map((face) => [face, testFont(face)]),
@@ -81,5 +87,16 @@ describe("createFontMetrics", () => {
     expect(metrics.width("MMMM", "mono", 10)).toBeCloseTo(metrics.width("iiii", "mono", 10));
     expect(metrics.width("MMMM", "regular", 10)).toBeGreaterThan(metrics.width("iiii", "regular", 10));
     expect(metrics.width("ab", "regular", 20)).toBeCloseTo(metrics.width("ab", "regular", 10) * 2);
+  });
+});
+
+describe("roundedRectPath", () => {
+  it("traces a closed rectangle with quadratic corners inside its box", () => {
+    const path = roundedRectPath(100, 40, 4);
+    expect(path.startsWith("M 4 0")).toBe(true);
+    expect(path.endsWith("Z")).toBe(true);
+    const numbers = path.match(/-?\d+(\.\d+)?/g)!.map(Number);
+    expect(Math.max(...numbers)).toBe(100);
+    expect(Math.min(...numbers)).toBe(0);
   });
 });

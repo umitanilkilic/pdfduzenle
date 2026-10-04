@@ -110,7 +110,9 @@ These apply to every change in every service. A change is not done until they ho
   `loadFont(face)`. Always embed through `embedFont()` (`src/pdf/embed.ts`).
 - Markdown → PDF: `src/pdf/markdown/parse.ts` (marked → blocks; raw HTML dropped, images become alt text, only
   http(s)/mailto links) → `layout.ts` (pure page layout into draw ops, measured through a `Metrics` interface) →
-  `ops/markdown.ts` (fontkit metrics, embeds only the faces used, link annotations). Main-thread code must not
+  `ops/markdown.ts` (fontkit metrics, embeds only the faces used, link annotations). Style: palette in
+  `COLORS`, rounded rects via SVG paths, shapes for bullets (no glyph needed), backgrounds split per page
+  (`withBackground`), page numbers and running title on multi-page documents. Main-thread code must not
   import `marked` or `src/pdf/markdown/*` (ESLint).
 - `src/tools/impl/` holds one file per tool (named by tool id); helpers shared by several tools live in
   `src/tools/impl/shared/`. Keep that split when adding tools.
@@ -153,6 +155,10 @@ These apply to every change in every service. A change is not done until they ho
 **Lessons learned (each caused a real bug here)**
 - pdf.js: use the legacy build (`pdfjs-dist/legacy/...`); the modern one crashes on browsers without
   `Map#getOrInsertComputed`.
+- pdf.js shares one worker port: opening a document while another is still being destroyed fails ("the worker
+  is being destroyed"), which surfaced as random "unexpected error" previews when options changed quickly.
+  `render.ts` tracks destroys (`teardown.ts`) and waits for them before opening; always destroy through
+  `RenderedDocument.destroy()`.
 - Next.js cuts request bodies going through the `/api` rewrite at 10 MB unless `proxyClientMaxBodySize`
   is raised. Keep it in sync with `GATEWAY_MAX_UPLOAD_MB`.
 - Locale routing via `proxy`/rewrites broke client prefetches (404s); use route groups instead.

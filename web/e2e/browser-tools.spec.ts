@@ -155,7 +155,7 @@ test("Markdown to PDF: live preview follows the options and the result keeps the
   const markdown = [
     "# Notlar",
     "",
-    ...Array.from({ length: 70 }, (_, i) => `${i + 1}. paragraf: **kalın** ve \`kod\`.\n`),
+    ...Array.from({ length: 160 }, (_, i) => `${i + 1}. paragraf: **kalın** ve \`kod\`.\n`),
   ];
   await page.goto("/markdown-pdf-cevir");
   await page
@@ -165,13 +165,17 @@ test("Markdown to PDF: live preview follows the options and the result keeps the
   const summary = page.getByTestId("markdown-preview").getByText(/^Önizleme: \d+ sayfa$/);
   await expect(summary).toBeVisible();
   const pagesAt = async () => Number((await summary.textContent())?.match(/\d+/)?.[0]);
-  const normal = await pagesAt();
+  // Smallest vs largest text size, so the page counts differ whatever the exact line spacing is.
+  const initial = await pagesAt();
+  await page.getByText("Küçük", { exact: true }).click();
+  await expect.poll(pagesAt).toBeLessThan(initial);
+  const small = await pagesAt();
   await page.getByText("Büyük", { exact: true }).click();
-  await expect.poll(pagesAt).toBeGreaterThan(normal);
+  await expect.poll(pagesAt).toBeGreaterThan(small);
 
   const download = await startAndDownload(page);
   expect(download.suggestedFilename()).toBe("notlar-markdown.pdf");
   const doc = await PDFDocument.load(await readFile(await download.path()));
   expect(doc.getTitle()).toBe("Notlar");
-  expect(doc.getPageCount()).toBeGreaterThan(normal);
+  expect(doc.getPageCount()).toBeGreaterThan(small);
 });
