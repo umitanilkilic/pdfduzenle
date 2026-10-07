@@ -86,3 +86,47 @@ test("every page links its source code, as the AGPL requires", async ({ page }) 
     await expect(footer.getByRole("link", { name: "GitHub" })).toBeVisible();
   }
 });
+
+test("llms.txt is served as plain text and links the tools", async ({ request }) => {
+  const res = await request.get("/llms.txt");
+  expect(res.status()).toBe(200);
+  expect(res.headers()["content-type"]).toContain("text/plain");
+  const text = await res.text();
+  expect(text).toMatch(/^# PDF Düzenle/);
+  expect(text).toContain("https://pdfduzenle.tr/en/merge-pdf");
+});
+
+test("the footer links the author's LinkedIn and other sites, and the home page says so in JSON-LD", async ({
+  page,
+}) => {
+  for (const [path, heading] of [
+    ["/", "Diğer projelerimiz"],
+    ["/en/merge-pdf", "Our other projects"],
+  ]) {
+    await page.goto(path);
+    const footer = page.getByRole("contentinfo");
+    await expect(footer.getByText(heading)).toBeVisible();
+    for (const [name, href] of [
+      ["LinkedIn", "https://www.linkedin.com/in/umitanilkilic"],
+      ["ipsorgu.tr", "https://ipsorgu.tr"],
+      ["packet.tr", "https://packet.tr"],
+    ]) {
+      const link = footer.getByRole("link", { name, exact: true });
+      await expect(link).toHaveAttribute("href", href);
+      // Followed links (no nofollow): they pass on search engine signals.
+      expect((await link.getAttribute("rel")) ?? "").not.toContain("nofollow");
+    }
+  }
+
+  await page.goto("/");
+  const jsonLd = await page.locator('script[type="application/ld+json"]').allTextContents();
+  const organization = jsonLd
+    .map((t) => JSON.parse(t))
+    .flatMap((d) => d["@graph"] ?? [d])
+    .find((node) => node["@type"] === "Organization");
+  expect(organization.founder.sameAs).toEqual([
+    "https://www.linkedin.com/in/umitanilkilic",
+    "https://ipsorgu.tr",
+    "https://packet.tr",
+  ]);
+});

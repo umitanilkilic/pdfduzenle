@@ -1,4 +1,5 @@
 import type { PDFDocumentProxy } from "pdfjs-dist";
+import { createTeardownQueue } from "./teardown";
 
 /** Browser-only rendering with pdf.js (thumbnails, previews, PDF → image). Loaded lazily. */
 export interface RenderedDocument {
@@ -27,8 +28,12 @@ function loadPdfjs() {
   return pdfjsPromise;
 }
 
+// Opening a document while another is being destroyed fails ("the worker is being destroyed").
+const teardowns = createTeardownQueue();
+
 export async function openDocument(bytes: Uint8Array): Promise<RenderedDocument> {
   const pdfjs = await loadPdfjs();
+  await teardowns.idle();
   // pdf.js takes ownership of the buffer it is given, so hand it a copy.
   const task = pdfjs.getDocument({ data: bytes.slice() });
   const doc: PDFDocumentProxy = await task.promise;
@@ -52,7 +57,7 @@ export async function openDocument(bytes: Uint8Array): Promise<RenderedDocument>
       page.cleanup();
       return canvas;
     },
-    destroy: () => task.destroy(),
+    destroy: () => teardowns.track(task.destroy()),
   };
 }
 

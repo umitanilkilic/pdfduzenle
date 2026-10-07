@@ -20,6 +20,8 @@ const eslintConfig = defineConfig([
                 "pdf-lib",
                 "@pdf-lib/*",
                 "@/pdf/ops/*",
+                "@/pdf/markdown/*",
+                "marked",
                 "@/pdf/load",
                 "@/pdf/embed",
                 "@/pdf/engine",

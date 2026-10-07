@@ -6,18 +6,25 @@ import type { Dictionary } from "@/i18n";
 import type { Locale } from "@/i18n/config";
 import { createWorkerEngine } from "@/pdf/client";
 import type { PdfEngine } from "@/pdf/engine";
+import { FONT_FILES, type FontFace } from "@/pdf/fonts";
 import type { ToolServices } from "@/tools/impl/shared/types";
 
 const RuntimeContext = createContext<ToolServices | null>(null);
 
-let fontPromise: Promise<Uint8Array> | null = null;
+const fontPromises = new Map<FontFace, Promise<Uint8Array>>();
 
-function loadDefaultFont(): Promise<Uint8Array> {
-  fontPromise ??= fetch("/fonts/Inter-400.ttf").then(async (res) => {
-    if (!res.ok) throw new Error(`Font request failed: ${res.status}`);
-    return new Uint8Array(await res.arrayBuffer());
-  });
-  return fontPromise;
+function loadDefaultFont(face: FontFace = "regular"): Promise<Uint8Array> {
+  let promise = fontPromises.get(face);
+  if (!promise) {
+    promise = fetch(`/fonts/${FONT_FILES[face]}`).then(async (res) => {
+      if (!res.ok) throw new Error(`Font request failed: ${res.status}`);
+      return new Uint8Array(await res.arrayBuffer());
+    });
+    // A failed download can be retried on the next run.
+    promise.catch(() => fontPromises.delete(face));
+    fontPromises.set(face, promise);
+  }
+  return promise;
 }
 
 /** Provides the services every tool needs. Pass `engine`/`gateway`/`loadFont` to swap them (tests, previews). */
@@ -33,7 +40,7 @@ export function ToolRuntimeProvider({
   locale: Locale;
   engine?: PdfEngine;
   gateway?: GatewayClient;
-  loadFont?: () => Promise<Uint8Array>;
+  loadFont?: (face?: FontFace) => Promise<Uint8Array>;
   children: React.ReactNode;
 }) {
   const [services] = useState<ToolServices>(() => ({

@@ -6,7 +6,7 @@ import { JsonLd } from "@/components/JsonLd";
 import { getDictionary } from "@/i18n";
 import { localePath, perLocale, type Locale } from "@/i18n/config";
 import { pageMetadata } from "@/lib/seo";
-import { absoluteUrl, SITE_NAME } from "@/lib/site";
+import { absoluteUrl, AUTHOR, SISTER_SITES, SITE_NAME, SOURCE_URL } from "@/lib/site";
 import { getAllToolContent } from "@/tools/content";
 import { toolPath } from "@/tools/paths";
 import { categoryOrder, tools } from "@/tools/registry";
@@ -61,6 +61,8 @@ export function HomeView({ locale }: { locale: Locale }) {
               name: SITE_NAME,
               url: absoluteUrl("/"),
               logo: absoluteUrl("/icon.svg"),
+              sameAs: [SOURCE_URL],
+              founder: { "@type": "Person", name: AUTHOR.name, sameAs: [AUTHOR.linkedin, ...SISTER_SITES] },
             },
             faqJsonLd(dict.home.faq),
           ],

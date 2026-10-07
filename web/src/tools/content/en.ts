@@ -216,6 +216,32 @@ export const enTools: ToolContentMap = {
     faq: [PRIVATE_FAQ],
     keywords: ["jpg", "png", "image", "photo", "picture", "image to pdf"],
   },
+  "markdown-to-pdf": {
+    name: "Markdown to PDF",
+    short: "Turn Markdown (.md) files into a clean PDF document.",
+    metaTitle: "Markdown to PDF – Convert MD Files to PDF",
+    metaDescription:
+      "Convert Markdown (.md) files to a well-formatted PDF with headings, lists, tables, code blocks and links. Free; your file is processed in your browser and never uploaded.",
+    h1: "Convert Markdown to PDF",
+    lead: "Turn READMEs, notes and documentation into a readable PDF with headings, tables and code blocks.",
+    steps: [
+      "Choose your Markdown (.md) file.",
+      "Pick the page size, text size and margins; the preview updates instantly.",
+      "Click “Start” and download the PDF.",
+    ],
+    faq: [
+      PRIVATE_FAQ,
+      {
+        q: "Which Markdown features are supported?",
+        a: "Headings, bold, italic and strikethrough, inline code and code blocks, numbered and bulleted lists, task lists, blockquotes, tables, horizontal rules and clickable links (GitHub-flavoured Markdown).",
+      },
+      {
+        q: "What happens to images and HTML?",
+        a: "For your privacy, images in the file are never downloaded; their alt text is printed instead. Raw HTML tags inside the Markdown are not rendered. Emoji are left out of the PDF.",
+      },
+    ],
+    keywords: ["markdown", "md", "readme", "md to pdf", "markdown converter", "documentation"],
+  },
   "word-to-pdf": {
     name: "Word to PDF",
     short: "Convert DOC and DOCX documents to PDF.",

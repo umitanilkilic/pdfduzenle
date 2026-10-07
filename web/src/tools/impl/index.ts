@@ -18,6 +18,7 @@ export const toolImpls: Partial<Record<ToolId, Loader>> = {
   watermark: () => import("./watermark"),
   crop: () => import("./crop"),
   "jpg-to-pdf": () => import("./jpg-to-pdf"),
+  "markdown-to-pdf": () => import("./markdown-to-pdf"),
   "pdf-to-jpg": () => import("./pdf-to-jpg"),
   sign: () => import("./sign"),
   metadata: () => import("./metadata"),

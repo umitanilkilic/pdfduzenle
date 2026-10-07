@@ -5,7 +5,7 @@ import { getDictionary } from "@/i18n";
 import { localePath } from "@/i18n/config";
 import { analyticsEnabled, analyticsIds } from "@/lib/analytics/config";
 import { pagePaths } from "@/lib/pages";
-import { SOURCE_URL } from "@/lib/site";
+import { AUTHOR, SISTER_SITES, SOURCE_URL } from "@/lib/site";
 import { Logo } from "./Logo";
 import { menuGroups } from "./nav-data";
 
@@ -22,12 +22,7 @@ export function SiteFooter({ locale }: { locale: Locale }) {
           <p className="text-muted max-w-xs text-sm">{dict.footer.tagline}</p>
           <ul className="text-muted flex gap-4 pt-2 text-sm">
             <li>
-              <a href="https://ipsorgu.tr" className="hover:text-fg" rel="noopener">
-                ipsorgu.tr
-              </a>
-            </li>
-            <li>
-              <a href="https://linkedin.com/in/umitanilkilic" className="hover:text-fg" rel="noopener me">
+              <a href={AUTHOR.linkedin} className="hover:text-fg" rel="noopener me">
                 LinkedIn
               </a>
             </li>
@@ -37,6 +32,19 @@ export function SiteFooter({ locale }: { locale: Locale }) {
               </a>
             </li>
           </ul>
+          {/* Plain (followed) links: the sites belong to the same author. */}
+          <div className="pt-2 text-sm">
+            <p className="mb-2 font-semibold">{dict.footer.otherProjects}</p>
+            <ul className="text-muted flex flex-wrap gap-x-4 gap-y-1">
+              {SISTER_SITES.map((url) => (
+                <li key={url}>
+                  <a href={url} className="hover:text-fg">
+                    {new URL(url).host}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
         <nav aria-label={dict.footer.tools} className="grid gap-8 sm:grid-cols-3">
           {groups.map((group) => (

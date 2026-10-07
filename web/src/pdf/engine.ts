@@ -1,5 +1,6 @@
 import { cropPdf } from "./ops/crop";
 import { imagesToPdf } from "./ops/images";
+import { markdownToPdf } from "./ops/markdown";
 import { mergePdfs } from "./ops/merge";
 import { readMetadata, writeMetadata } from "./ops/metadata";
 import { extractPages, organizePages, pageCount, removePages, rotatePages, splitPdf } from "./ops/pages";
@@ -19,6 +20,7 @@ export const operations = {
   placeImage,
   cropPdf,
   imagesToPdf,
+  markdownToPdf,
   readMetadata,
   writeMetadata,
 };

@@ -16,6 +16,7 @@ export type ToolId =
   | "repair"
   | "ocr"
   | "jpg-to-pdf"
+  | "markdown-to-pdf"
   | "word-to-pdf"
   | "excel-to-pdf"
   | "powerpoint-to-pdf"
@@ -42,6 +43,7 @@ export type ToolIcon =
   | "ScanText"
   | "FileImage"
   | "FileText"
+  | "FileCode"
   | "Sheet"
   | "Presentation"
   | "Image"
@@ -73,6 +75,7 @@ const IMAGES = "image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp";
 const WORD = ".doc,.docx,.odt,.rtf,.txt";
 const EXCEL = ".xls,.xlsx,.ods,.csv";
 const POWERPOINT = ".ppt,.pptx,.odp";
+const MARKDOWN = "text/markdown,.md,.markdown";
 const SCANS = "image/jpeg,image/png,image/tiff,.jpg,.jpeg,.png,.tif,.tiff";
 
 export const tools: ToolDefinition[] = [
@@ -178,6 +181,16 @@ export const tools: ToolDefinition[] = [
     accept: IMAGES,
     multiple: true,
     next: ["compress", "ocr", "merge"],
+  },
+  {
+    id: "markdown-to-pdf",
+    slug: { tr: "markdown-pdf-cevir", en: "markdown-to-pdf" },
+    category: "convertTo",
+    runtime: "browser",
+    icon: "FileCode",
+    accept: MARKDOWN,
+    multiple: false,
+    next: ["page-numbers", "merge", "protect", "compress"],
   },
   {
     id: "word-to-pdf",
