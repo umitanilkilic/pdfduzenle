@@ -127,16 +127,64 @@ Current limits: right-to-left scripts (Arabic, Hebrew) are not supported yet, an
 covers Latin, Cyrillic and Greek. Other scripts need an extra font for text drawn into PDFs and OG images.
 OCR languages are separate: they depend on the Tesseract language packs installed in the OCR service.
 
-## Deployment (Docker Compose)
+## Deployment
 
-```bash
-cp .env.example .env        # fill in the Unlimited-OCR endpoint (leave empty to use Tesseract only)
-docker compose up -d --build
+Production runs only images that CI built and signed; the server never builds from source.
+
+```
+push to main ──► CI (tests) ──► Release workflow                         ──► server (deploy/server-deploy.sh)
+                                 build web, gateway, ocr                       gh attestation verify ×2 per image
+                                 push to GHCR by digest                        (this repo, release.yml, main, commit)
+                                 Trivy: no fixable critical CVEs               git checkout <commit>
+                                 sign SLSA provenance + SPDX SBOM (Sigstore)   compose up by digest, read-only
 ```
 
-The `web` service joins the external `webnet` network where the reverse proxy runs. Create it first if it
-doesn't exist: `docker network create webnet`. The gateway lives only on the internal `backend` network
-with no internet access; the OCR service is also on the `egress` network to reach the GPU endpoint.
+- **Provenance and attestations.** Every image digest gets a SLSA build provenance and an SBOM attestation,
+  signed with the workflow's OIDC identity (Sigstore) and stored next to the image in GHCR. Anyone can check
+  them: `gh attestation verify oci://ghcr.io/umitanilkilic/pdfduzenle-web@sha256:… --repo umitanilkilic/pdfduzenle`.
+- **Immutable deployment.** The server runs images by digest (`compose.release.yaml`), with read-only root
+  filesystems. Before starting anything, `deploy/server-deploy.sh` verifies that each digest was built by
+  `.github/workflows/release.yml` on `main` from exactly the commit being deployed, then checks out that
+  commit's compose files. A tag can't be re-pointed and a pushed image without attestations is refused.
+- **Pinned inputs.** Actions are pinned to commit SHAs and base images to digests (`deploy/check-pins.sh`
+  enforces it in CI); lockfiles pin every package. Dependabot updates all of them, waiting 7 days after each
+  release.
+
+### Server setup (once)
+
+```bash
+git clone https://github.com/umitanilkilic/pdfduzenle /opt/pdfduzenle && cd /opt/pdfduzenle
+cp .env.example .env              # runtime settings (Unlimited-OCR endpoint, …)
+docker network create webnet      # if the reverse proxy network doesn't exist yet
+# GitHub CLI (https://cli.github.com) for the attestation checks, with a fine-grained token that has no
+# permissions (it only lets gh fetch Sigstore's trust root):
+install -d -m 700 /etc/pdfduzenle
+install -m 600 /dev/null /etc/pdfduzenle/gh-token && echo 'github_pat_…' > /etc/pdfduzenle/gh-token
+```
+
+In `/root/.ssh/authorized_keys`, restrict the CI deploy key to the deploy script:
+
+```
+command="/opt/pdfduzenle/deploy/server-deploy.sh",restrict ssh-ed25519 AAAA… github-actions-deploy
+```
+
+In the GitHub repository:
+
+- Secrets `DEPLOY_HOST`, `DEPLOY_SSH_KEY`, `DEPLOY_KNOWN_HOSTS`; optionally required reviewers on the
+  `production` environment.
+- Variables (Settings → Variables) for the web image: `NEXT_PUBLIC_GA_ID`, `NEXT_PUBLIC_CLARITY_ID`,
+  `GOOGLE_SITE_VERIFICATION`, `BING_SITE_VERIFICATION`, `YANDEX_SITE_VERIFICATION` (and
+  `NEXT_PUBLIC_SITE_URL` if not `https://pdfduzenle.tr`). They are public values baked into the pages.
+- After the first release, make the three `pdfduzenle-*` packages public (Packages → Package settings) or
+  `docker login ghcr.io` on the server with a `read:packages` token.
+
+Rollback to the previous deployment: `/opt/pdfduzenle/deploy/server-deploy.sh rollback`.
+
+For a local or test server without CI, `docker compose up -d --build` still builds everything from source.
+
+The `web` service joins the external `webnet` network where the reverse proxy runs. The gateway lives only
+on the internal `backend` network with no internet access; the OCR service is also on the `egress` network
+to reach the GPU endpoint.
 
 **Reverse proxy**
 
@@ -147,7 +195,7 @@ be reached directly from outside.
 
 ### Environment variables
 
-**web** (read at build time)
+**web** (read at build time: repository variables for the release workflow, `.env` for a local build)
 
 | Variable | Default | Description |
 | --- | --- | --- |

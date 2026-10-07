@@ -1,21 +1,28 @@
 version: 2
+# Every update waits 7 days after release: compromised packages are usually caught and yanked within days.
+# Actions are pinned to commit SHAs and base images to digests; Dependabot updates both with their tags.
 updates:
   - package-ecosystem: npm
     directory: /web
     schedule: { interval: weekly }
+    cooldown: { default-days: 7 }
     groups:
       web: { patterns: ["*"] }
   - package-ecosystem: gomod
     directory: /services/gateway
     schedule: { interval: weekly }
+    cooldown: { default-days: 7 }
   - package-ecosystem: uv
     directory: /services/ocr
     schedule: { interval: weekly }
+    cooldown: { default-days: 7 }
     groups:
       ocr: { patterns: ["*"] }
   - package-ecosystem: docker
     directories: [/web, /services/gateway, /services/ocr]
     schedule: { interval: weekly }
+    cooldown: { default-days: 7 }
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: weekly }
+    cooldown: { default-days: 7 }

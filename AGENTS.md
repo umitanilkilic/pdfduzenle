@@ -205,6 +205,21 @@ These apply to every change in every service. A change is not done until they ho
 - Unlimited-OCR's output format (`<|det|>` blocks, 0–999 coordinates) is an assumption from the README;
   verify `services/ocr/app/unlimited/parse.py` against the real endpoint before relying on it.
 
+## Supply chain and deployment
+
+- Production = images built by `.github/workflows/release.yml` (after CI passes on `main`), pushed to GHCR,
+  gated by Trivy (no fixable critical CVEs), with Sigstore-signed SLSA provenance and SPDX SBOM attestations.
+  The server runs `deploy/server-deploy.sh` (SSH forced command): it verifies both attestations for each
+  digest (signer workflow, `refs/heads/main`, exact commit) and starts `compose.yaml` + `compose.release.yaml`
+  by digest with read-only root filesystems. Nothing is built on the server; `rollback` restores the
+  previous digests.
+- Pin everything: actions by full commit SHA (with a `# vX.Y.Z` comment), base images and the Dockerfile
+  syntax frontend by digest (keep the tag for Dependabot), CI tools by version. `deploy/check-pins.sh`
+  enforces it; `actionlint` + `shellcheck` lint workflows and scripts. Shell scripts get a `*.test.sh` with
+  fake commands on PATH.
+- A new image or service means: matrix entry in `release.yml`, `SERVICES` in `server-deploy.sh` and its
+  test, and an `image:` + `read_only` entry in `compose.release.yaml`.
+
 ## services/gateway conventions
 
 - Layers: `httpapi` (transport, defines the small `JobManager`/`Limiter` interfaces it needs) → `jobs`

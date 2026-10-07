@@ -26,8 +26,10 @@ jobs:
       run:
         working-directory: web
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24
           cache: npm
@@ -46,15 +48,19 @@ jobs:
       run:
         working-directory: services/gateway
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-go@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: services/gateway/go.mod
-      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends $APT_PACKAGES
+      - run: |
+          read -ra packages <<<"$APT_PACKAGES"
+          sudo apt-get update && sudo apt-get install -y --no-install-recommends "${packages[@]}"
       - run: test -z "$(gofmt -l .)"
       - run: go vet ./...
       - run: go test -race ./...
-      - run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+      - run: go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...
 
   ocr:
     runs-on: ubuntu-24.04
@@ -62,30 +68,56 @@ jobs:
       run:
         working-directory: services/ocr
     steps:
-      - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v7
-      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends $APT_PACKAGES
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+      - run: |
+          read -ra packages <<<"$APT_PACKAGES"
+          sudo apt-get update && sudo apt-get install -y --no-install-recommends "${packages[@]}"
       - run: uv sync --locked
       - run: uv run ruff check .
       - run: uv run ruff format --check .
       - run: uv run pytest
-      - run: uv run --with pip-audit pip-audit
+      - run: uv run --with pip-audit==2.10.1 pip-audit
+
+  # Workflows, Dockerfiles and the deploy script are part of the supply chain too.
+  supply-chain:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: services/gateway/go.mod
+      - name: Lint workflows (includes shellcheck of run steps)
+        run: go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
+      - name: Pins (actions by commit SHA, base images by digest)
+        run: bash deploy/check-pins.sh
+      - run: shellcheck deploy/*.sh
+      - run: bash deploy/check-pins.test.sh
+      - run: bash deploy/server-deploy.test.sh
 
   e2e:
     runs-on: ubuntu-24.04
     needs: [web, gateway, ocr]
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24
           cache: npm
           cache-dependency-path: web/package-lock.json
-      - uses: actions/setup-go@v7
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: services/gateway/go.mod
-      - uses: astral-sh/setup-uv@v7
-      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends $APT_PACKAGES
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+      - run: |
+          read -ra packages <<<"$APT_PACKAGES"
+          sudo apt-get update && sudo apt-get install -y --no-install-recommends "${packages[@]}"
       - run: uv sync --locked
         working-directory: services/ocr
       - run: npm ci && npx playwright install --with-deps chromium
@@ -94,7 +126,7 @@ jobs:
       - run: npm run build:e2e && npm run test:e2e
         working-directory: web
       - if: failure()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: playwright-traces
           path: web/test-results

@@ -1,0 +1,24 @@
+# Production overlay: run the images CI built and attested, by digest, with read-only root filesystems.
+# Nothing is built on the server. deploy/server-deploy.sh verifies the attestations, writes the digests to
+# .images.env and runs:
+#   docker compose -f compose.yaml -f compose.release.yaml --env-file .env --env-file .images.env up -d --no-build
+services:
+  web:
+    image: ${WEB_IMAGE:?WEB_IMAGE is written by deploy/server-deploy.sh}
+    read_only: true
+    tmpfs:
+      - /tmp:size=256m
+      - /app/.next/cache:size=256m
+
+  gateway:
+    image: ${GATEWAY_IMAGE:?GATEWAY_IMAGE is written by deploy/server-deploy.sh}
+    read_only: true
+    # /tmp (jobs) is already a tmpfs in compose.yaml; caches of fontconfig and friends go to HOME.
+    tmpfs:
+      - /home/app:size=64m
+
+  ocr:
+    image: ${OCR_IMAGE:?OCR_IMAGE is written by deploy/server-deploy.sh}
+    read_only: true
+    tmpfs:
+      - /home/app:size=64m
