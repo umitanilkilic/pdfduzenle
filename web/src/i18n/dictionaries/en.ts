@@ -117,6 +117,7 @@ export const en: Dictionary = {
   footer: {
     tagline: "Free and private online PDF tools.",
     tools: "Tools",
+    otherProjects: "Our other projects",
     openSource: "Open source under AGPL-3.0",
     privacy: "Privacy and cookies",
     cookieSettings: "Cookie settings",

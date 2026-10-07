@@ -115,6 +115,7 @@ export const tr = {
   footer: {
     tagline: "Türkçe, ücretsiz ve güvenli online PDF araçları.",
     tools: "Araçlar",
+    otherProjects: "Diğer projelerimiz",
     openSource: "AGPL-3.0 lisanslı açık kaynak",
     privacy: "Gizlilik ve çerezler",
     cookieSettings: "Çerez tercihleri",
