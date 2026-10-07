@@ -84,7 +84,8 @@ test("OCR text output only suggests tools that accept text @server", async ({ pa
   await page.getByTestId("file-input").setInputFiles(scan);
   await page.getByText("Düz metin (TXT)").click();
   await page.getByTestId("start").click();
-  await expect(page.getByTestId("result")).toBeVisible();
+  // A real Tesseract job: give it the same allowance as the other server jobs.
+  await expect(page.getByTestId("result")).toBeVisible({ timeout: 30_000 });
   // compress and pdf-to-word only take PDFs: they must not be offered for a .txt result.
   await expect(page.getByTestId("result").getByRole("link")).toHaveCount(0);
 });
