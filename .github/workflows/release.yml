@@ -17,14 +17,17 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  # The commit CI tested (workflow_run) or the one dispatched by hand.
-  COMMIT: ${{ github.event.workflow_run.head_sha || github.sha }}
+  # The signing certificate records github.sha, so that is what we build: for workflow_run it is the tip of
+  # main, which the job condition below requires to be the commit CI just tested.
+  COMMIT: ${{ github.sha }}
 
 jobs:
   images:
+    # main moved on after this CI run: skip, the CI run of the newer commit triggers its own release.
     if: >-
-      github.event_name == 'workflow_dispatch' ||
-      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_sha == github.sha)
     runs-on: ubuntu-24.04
     permissions:
       contents: read

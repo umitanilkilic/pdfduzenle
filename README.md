@@ -133,7 +133,7 @@ Production runs only images that CI built and signed; the server never builds fr
 
 ```
 push to main ──► CI (tests) ──► Release workflow                         ──► server (deploy/server-deploy.sh)
-                                 build web, gateway, ocr                       gh attestation verify ×2 per image
+                                 build web, gateway, ocr                       cosign verify-attestation ×2 per image
                                  push to GHCR by digest                        (this repo, release.yml, main, commit)
                                  Trivy: no fixable critical CVEs               git checkout <commit>
                                  sign SLSA provenance + SPDX SBOM (Sigstore)   compose up by digest, read-only
@@ -141,11 +141,12 @@ push to main ──► CI (tests) ──► Release workflow                    
 
 - **Provenance and attestations.** Every image digest gets a SLSA build provenance and an SBOM attestation,
   signed with the workflow's OIDC identity (Sigstore) and stored next to the image in GHCR. Anyone can check
-  them: `gh attestation verify oci://ghcr.io/umitanilkilic/pdfduzenle-web@sha256:… --repo umitanilkilic/pdfduzenle`.
+  them, e.g. with the GitHub CLI: `gh attestation verify oci://ghcr.io/umitanilkilic/pdfduzenle-web@sha256:… --repo umitanilkilic/pdfduzenle`.
 - **Immutable deployment.** The server runs images by digest (`compose.release.yaml`), with read-only root
-  filesystems. Before starting anything, `deploy/server-deploy.sh` verifies that each digest was built by
-  `.github/workflows/release.yml` on `main` from exactly the commit being deployed, then checks out that
-  commit's compose files. A tag can't be re-pointed and a pushed image without attestations is refused.
+  filesystems. Before starting anything, `deploy/server-deploy.sh` verifies with cosign that each digest
+  was built by `.github/workflows/release.yml` on `main` from exactly the commit being deployed, then checks
+  out that commit's compose files. cosign runs from its official image pinned by digest, so the server
+  needs nothing but Docker and git (no extra tools, no tokens). A tag can't be re-pointed and a pushed image without attestations is refused.
 - **Pinned inputs.** Actions are pinned to commit SHAs and base images to digests (`deploy/check-pins.sh`
   enforces it in CI); lockfiles pin every package. Dependabot updates all of them, waiting 7 days after each
   release.
@@ -156,10 +157,6 @@ push to main ──► CI (tests) ──► Release workflow                    
 git clone https://github.com/umitanilkilic/pdfduzenle /opt/pdfduzenle && cd /opt/pdfduzenle
 cp .env.example .env              # runtime settings (Unlimited-OCR endpoint, …)
 docker network create webnet      # if the reverse proxy network doesn't exist yet
-# GitHub CLI (https://cli.github.com) for the attestation checks, with a fine-grained token that has no
-# permissions (it only lets gh fetch Sigstore's trust root):
-install -d -m 700 /etc/pdfduzenle
-install -m 600 /dev/null /etc/pdfduzenle/gh-token && echo 'github_pat_…' > /etc/pdfduzenle/gh-token
 ```
 
 In `/root/.ssh/authorized_keys`, restrict the CI deploy key to the deploy script:
@@ -177,6 +174,9 @@ In the GitHub repository:
   `NEXT_PUBLIC_SITE_URL` if not `https://pdfduzenle.tr`). They are public values baked into the pages.
 - After the first release, make the three `pdfduzenle-*` packages public (Packages → Package settings) or
   `docker login ghcr.io` on the server with a `read:packages` token.
+
+The server must reach `ghcr.io` (images and their attestations) and `tuf-repo-cdn.sigstore.dev` (Sigstore's
+trust root, fetched by cosign).
 
 Rollback to the previous deployment: `/opt/pdfduzenle/deploy/server-deploy.sh rollback`.
 

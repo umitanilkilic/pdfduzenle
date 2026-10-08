@@ -9,12 +9,14 @@ SHA=3d3c42e5aac5ba805825da76410c181273ba90b1
 DIGEST=sha256:$(printf 'a%.0s' {1..64})
 failures=0
 
-repo() { # $1 workflow step, $2 Dockerfile body
+repo() { # $1 workflow step, $2 Dockerfile body, $3 deploy script line (optional)
   local dir="$WORK/$RANDOM$RANDOM"
   mkdir -p "$dir/.github/workflows" "$dir/web" "$dir/services/x"
   printf 'jobs:\n  a:\n    steps:\n      %s\n' "$1" >"$dir/.github/workflows/ci.yml"
   printf '%s\n' "$2" >"$dir/web/Dockerfile"
   printf 'FROM scratch@%s\n' "$DIGEST" >"$dir/services/x/Dockerfile"
+  mkdir -p "$dir/deploy"
+  printf '%s\n' "${3:-TOOL_IMAGE=example.org/tool:v1@$DIGEST}" >"$dir/deploy/run.sh"
   echo "$dir"
 }
 
@@ -43,6 +45,9 @@ expect fail "COPY --from an image by tag" \
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uv")"
 expect fail "unpinned syntax frontend" "$(repo "- uses: actions/checkout@$SHA" "# syntax=docker/dockerfile:1
 FROM node@$DIGEST")"
+
+expect fail "tool image in a deploy script by tag" \
+  "$(repo "- uses: actions/checkout@$SHA" "$PINNED" "TOOL_IMAGE=ghcr.io/sigstore/cosign/cosign:v3")"
 
 [[ $failures -eq 0 ]] || exit 1
 echo "all passed"

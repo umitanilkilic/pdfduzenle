@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Tests deploy/server-deploy.sh with fake gh, git and docker commands on PATH.
+# Tests deploy/server-deploy.sh with fake git and docker commands on PATH.
 set -euo pipefail
 
 SCRIPT="$(cd "$(dirname "$0")" && pwd)/server-deploy.sh"
@@ -16,11 +16,11 @@ setup() {
   rm -rf "${WORK:?}/dir" "${WORK:?}/bin" "${WORK:?}/calls"
   mkdir -p "$WORK/dir" "$WORK/bin"
   touch "$WORK/dir/.env" "$WORK/calls"
-  for cmd in gh git docker; do
+  for cmd in git docker; do
     cat >"$WORK/bin/$cmd" <<STUB
 #!/usr/bin/env bash
 echo "$cmd \$*" >>"$WORK/calls"
-if [[ "$cmd" == gh && -n "\${FAIL_VERIFY:-}" && "\$*" == *"\$FAIL_VERIFY"* ]]; then exit 1; fi
+if [[ "$cmd" == docker && "\$*" == *verify-attestation* && -n "\${FAIL_VERIFY:-}" && "\$*" == *"\$FAIL_VERIFY"* ]]; then exit 1; fi
 if [[ "$cmd" == git && "\$*" == *merge-base* && -n "\${NOT_ON_MAIN:-}" ]]; then exit 1; fi
 exit 0
 STUB
@@ -29,8 +29,7 @@ STUB
 }
 
 run() {
-  PATH="$WORK/bin:$PATH" PDFDUZENLE_DIR="$WORK/dir" PDFDUZENLE_GH_TOKEN_FILE=/nonexistent GH_TOKEN=test \
-    "$SCRIPT" "$@" >"$WORK/out" 2>&1
+  PATH="$WORK/bin:$PATH" PDFDUZENLE_DIR="$WORK/dir" "$SCRIPT" "$@" >"$WORK/out" 2>&1
 }
 
 check() {
@@ -55,10 +54,14 @@ calls_before() { # $1 happens before $2 in the call log
 # A valid deployment verifies all six attestations, then checks out the commit and starts by digest.
 setup
 check "deploys valid digests" run deploy "$COMMIT" "$D1" "$D2" "$D3"
-check "verifies provenance and SBOM for each image" test "$(grep -c '^gh attestation verify' "$WORK/calls")" -eq 6
-check "pins the signer workflow, branch and commit" \
-  grep -q -- "--signer-workflow umitanilkilic/pdfduzenle/.github/workflows/release.yml --source-ref refs/heads/main --source-digest $COMMIT" "$WORK/calls"
-check "verifies before starting anything" calls_before "gh attestation" "docker compose"
+check "verifies provenance and SBOM for each image" test "$(grep -c 'verify-attestation' "$WORK/calls")" -eq 6
+check "  …with both predicate types" bash -c "grep -c -- '--type https://slsa.dev/provenance/v1 ' '$WORK/calls' | grep -qx 3 &&
+  grep -c -- '--type https://spdx.dev/Document/v2.3 ' '$WORK/calls' | grep -qx 3"
+check "pins the signer workflow on main and the exact commit" grep -q -- \
+  "--certificate-identity https://github.com/umitanilkilic/pdfduzenle/.github/workflows/release.yml@refs/heads/main --certificate-oidc-issuer https://token.actions.githubusercontent.com --certificate-github-workflow-repository umitanilkilic/pdfduzenle --certificate-github-workflow-ref refs/heads/main --certificate-github-workflow-sha $COMMIT ghcr.io/umitanilkilic/pdfduzenle-web@$D1" \
+  "$WORK/calls"
+check "runs cosign from an image pinned by digest" grep -qE "^docker run --rm ghcr.io/sigstore/cosign/cosign:v[0-9.]+@sha256:[0-9a-f]{64} verify-attestation" "$WORK/calls"
+check "verifies before starting anything" calls_before "verify-attestation" "docker compose"
 check "never builds" bash -c "! grep -q -- '--build ' '$WORK/calls' && grep -q -- 'up -d --no-build' '$WORK/calls'"
 check "writes images by digest" grep -qx "WEB_IMAGE=ghcr.io/umitanilkilic/pdfduzenle-web@$D1" "$WORK/dir/.images.env"
 check "records the commit" grep -qx "DEPLOYED_COMMIT=$COMMIT" "$WORK/dir/.images.env"
@@ -76,17 +79,17 @@ for bad in "deploy main $D1 $D2 $D3" "deploy $COMMIT $D1 $D2" "deploy $COMMIT la
   printf 'WEB_IMAGE=running\n' >"$WORK/dir/.images.env"
   # shellcheck disable=SC2086 # split on purpose, like the forced command does
   check "rejects: ${bad:-<empty>}" bash -c "! (SSH_ORIGINAL_COMMAND='$bad'; export SSH_ORIGINAL_COMMAND; $(declare -f run); WORK='$WORK' SCRIPT='$SCRIPT' run)"
-  check "  …and starts nothing" bash -c "! grep -q 'docker' '$WORK/calls' && grep -qx 'WEB_IMAGE=running' '$WORK/dir/.images.env'"
+  check "  …and starts nothing" bash -c "! grep -q 'docker compose' '$WORK/calls' && grep -qx 'WEB_IMAGE=running' '$WORK/dir/.images.env'"
 done
 
 setup
 printf 'WEB_IMAGE=running\n' >"$WORK/dir/.images.env"
 check "refuses an image whose attestation fails" bash -c "! (FAIL_VERIFY=pdfduzenle-gateway; export FAIL_VERIFY; $(declare -f run); WORK='$WORK' SCRIPT='$SCRIPT' run deploy $COMMIT $D1 $D2 $D3)"
-check "  …and starts nothing" bash -c "! grep -q 'docker' '$WORK/calls' && grep -qx 'WEB_IMAGE=running' '$WORK/dir/.images.env'"
+check "  …and starts nothing" bash -c "! grep -q 'docker compose' '$WORK/calls' && grep -qx 'WEB_IMAGE=running' '$WORK/dir/.images.env'"
 
 setup
 check "refuses a commit that is not on main" bash -c "! (NOT_ON_MAIN=1; export NOT_ON_MAIN; $(declare -f run); WORK='$WORK' SCRIPT='$SCRIPT' run deploy $COMMIT $D1 $D2 $D3)"
-check "  …and starts nothing" bash -c "! grep -q 'docker' '$WORK/calls'"
+check "  …and starts nothing" bash -c "! grep -q 'docker compose' '$WORK/calls'"
 
 # Rollback returns to the previous digests and commit.
 setup

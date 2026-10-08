@@ -4,24 +4,22 @@
 # CI then runs: ssh root@host deploy <commit> <web-digest> <gateway-digest> <ocr-digest>
 # By hand:      deploy/server-deploy.sh rollback
 #
-# For every image it checks, with `gh attestation verify`, that the digest was built by this repository's
-# release workflow from the given commit on main (SLSA provenance) and has a signed SBOM. Only then does it
+# For every image it checks with cosign that the digest carries a SLSA provenance and an SBOM attestation
+# signed by this repository's release workflow on main, from exactly the given commit. Only then does it
 # check out that commit's compose files and start the containers by digest. Nothing is ever built here.
+# cosign runs from its official image (pinned by digest), so the server needs only Docker: no extra tools,
+# no tokens. It must reach ghcr.io and Sigstore's trust root (tuf-repo-cdn.sigstore.dev).
 set -euo pipefail
 
 REPO="${PDFDUZENLE_REPO:-umitanilkilic/pdfduzenle}"
 REGISTRY="${PDFDUZENLE_REGISTRY:-ghcr.io/umitanilkilic}"
 DIR="${PDFDUZENLE_DIR:-/opt/pdfduzenle}"
-WORKFLOW="$REPO/.github/workflows/release.yml"
+# The identity GitHub's OIDC token gives the release workflow when it runs on main.
+SIGNER="https://github.com/$REPO/.github/workflows/release.yml@refs/heads/main"
+ISSUER=https://token.actions.githubusercontent.com
+COSIGN_IMAGE=ghcr.io/sigstore/cosign/cosign:v3.1.3@sha256:9e5c2f2edc34351160407ca3416c61855bdf9403c3c5936e0f0be7fc261611b8
 SERVICES=(web gateway ocr)
 PREDICATES=(https://slsa.dev/provenance/v1 https://spdx.dev/Document/v2.3)
-
-# gh needs a token to fetch Sigstore's trust root; a fine-grained token without permissions is enough.
-TOKEN_FILE="${PDFDUZENLE_GH_TOKEN_FILE:-/etc/pdfduzenle/gh-token}"
-if [[ -z "${GH_TOKEN:-}" && -r "$TOKEN_FILE" ]]; then
-  GH_TOKEN="$(<"$TOKEN_FILE")"
-  export GH_TOKEN
-fi
 
 log() { printf '[deploy] %s\n' "$*" >&2; }
 die() {
@@ -37,9 +35,10 @@ compose() {
 verify_image() {
   local ref="$1" commit="$2" predicate
   for predicate in "${PREDICATES[@]}"; do
-    gh attestation verify "oci://$ref" --repo "$REPO" --bundle-from-oci \
-      --signer-workflow "$WORKFLOW" --source-ref refs/heads/main --source-digest "$commit" \
-      --predicate-type "$predicate" --deny-self-hosted-runners >/dev/null ||
+    docker run --rm "$COSIGN_IMAGE" verify-attestation --type "$predicate" \
+      --certificate-identity "$SIGNER" --certificate-oidc-issuer "$ISSUER" \
+      --certificate-github-workflow-repository "$REPO" --certificate-github-workflow-ref refs/heads/main \
+      --certificate-github-workflow-sha "$commit" "$ref" >/dev/null ||
       die "attestation $predicate does not verify for $ref"
   done
   log "verified $ref"

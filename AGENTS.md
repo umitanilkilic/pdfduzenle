@@ -210,13 +210,17 @@ These apply to every change in every service. A change is not done until they ho
 - Production = images built by `.github/workflows/release.yml` (after CI passes on `main`), pushed to GHCR,
   gated by Trivy (no fixable critical CVEs), with Sigstore-signed SLSA provenance and SPDX SBOM attestations.
   The server runs `deploy/server-deploy.sh` (SSH forced command): it verifies both attestations for each
-  digest (signer workflow, `refs/heads/main`, exact commit) and starts `compose.yaml` + `compose.release.yaml`
+  digest with cosign, run from its digest-pinned image (signer identity = `release.yml@refs/heads/main`,
+  repository, exact commit), and starts `compose.yaml` + `compose.release.yaml`
   by digest with read-only root filesystems. Nothing is built on the server; `rollback` restores the
   previous digests.
 - Pin everything: actions by full commit SHA (with a `# vX.Y.Z` comment), base images and the Dockerfile
   syntax frontend by digest (keep the tag for Dependabot), CI tools by version. `deploy/check-pins.sh`
-  enforces it; `actionlint` + `shellcheck` lint workflows and scripts. Shell scripts get a `*.test.sh` with
+  enforces it, including `*_IMAGE=` lines in deploy scripts (Dependabot doesn't update those: bump cosign by
+  hand). `actionlint` + `shellcheck` lint workflows and scripts. Shell scripts get a `*.test.sh` with
   fake commands on PATH.
+- The signing certificate records `github.sha`. For `workflow_run` that is main's tip, not necessarily the
+  commit CI tested, so `release.yml` builds `github.sha` and only runs when it equals `workflow_run.head_sha`.
 - A new image or service means: matrix entry in `release.yml`, `SERVICES` in `server-deploy.sh` and its
   test, and an `image:` + `read_only` entry in `compose.release.yaml`.
 

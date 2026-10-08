@@ -22,4 +22,10 @@ for file in web/Dockerfile services/*/Dockerfile; do
   done < <(grep -E '^(# syntax=|FROM |COPY --from=)' "$file")
 done
 
+# Images the deploy scripts run directly (cosign). Dependabot doesn't see these: bump them by hand.
+while IFS= read -r line; do
+  echo "unpinned image in a deploy script: $line"
+  bad=1
+done < <(grep -nE '^[A-Z_]+_IMAGE=' deploy/*.sh 2>/dev/null | grep -v '@sha256:[0-9a-f]\{64\}' || true)
+
 exit "$bad"
